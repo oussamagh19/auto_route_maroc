@@ -4,109 +4,102 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="style.css">
-<title>Compositeur ADM</title>
+<title>Compositeur ADM - Routes du Maroc</title>
 
 </head>
 <body>
-
 <h1>Compositeur d'Images · Autoroutes du Maroc</h1>
-
 <div class="workspace">
-  <div class="panel">
 
-    <div class="section-title">Image de fond</div>
+  <!-- ── PANEL ── -->
+  <div class="panel">
+    <div class="stitle">Image de fond</div>
     <div class="bg-drop" id="bgDrop" onclick="document.getElementById('bgInput').click()">
       <div class="ico">🖼️</div>
-      <p><span>Choisir</span> ou glisser<br>l'image de fond</p>
+      <p><span>Choisir</span> ou glisser l'image de fond</p>
     </div>
     <input type="file" id="bgInput" accept="image/*">
 
-    <hr class="divider">
-    <div class="section-title">Calques — positions fixes</div>
+    
 
-    <!-- SLOT 0 -->
+    <hr class="divider">
+    <div class="stitle">Calques — positions fixes</div>
+
     <div class="slot-card" id="card-0">
-      <div class="slot-header">
-        <div class="slot-dot" style="background:#e97c1a"></div>
-        <span class="slot-name">Avis Important Météo</span>
-      </div>
-      <div class="slot-thumb-wrap">
-        <img class="slot-thumb" id="thumb-0">
-        <span class="slot-empty-hint">Vide</span>
-      </div>
+      <div class="slot-header"><div class="slot-dot" style="background:#e97c1a"></div><span class="slot-name">Avis Important</span></div>
+      <div class="slot-thumb-wrap"><img class="slot-thumb" id="thumb-0"><span class="slot-empty-hint">Vide</span></div>
       <button class="slot-btn" onclick="triggerSlot(0)">+ Choisir image</button>
       <div class="fit-row">
-        <button class="fit-btn active" id="fit-0-cover" onclick="setFit(0,'cover')">Cover</button>
-        <button class="fit-btn" id="fit-0-contain" onclick="setFit(0,'contain')">Contain</button>
-        <button class="fit-btn" id="fit-0-fill" onclick="setFit(0,'fill')">Étirer</button>
+        <button class="fit-btn active" id="fit-0-cover"   onclick="setFit(0,'cover')">Cover</button>
+        <button class="fit-btn"        id="fit-0-contain" onclick="setFit(0,'contain')">Contain</button>
+        <button class="fit-btn"        id="fit-0-fill"    onclick="setFit(0,'fill')">Étirer</button>
       </div>
     </div>
 
-    <!-- SLOT 1 -->
     <div class="slot-card" id="card-1">
-      <div class="slot-header">
-        <div class="slot-dot" style="background:#4fa3ff"></div>
-        <span class="slot-name">Forme orange</span>
-      </div>
-      <div class="slot-thumb-wrap">
-        <img class="slot-thumb" id="thumb-1">
-        <span class="slot-empty-hint">Vide</span>
-      </div>
+      <div class="slot-header"><div class="slot-dot" style="background:#4fa3ff"></div><span class="slot-name">Forme orange</span></div>
+      <div class="slot-thumb-wrap"><img class="slot-thumb" id="thumb-1"><span class="slot-empty-hint">Vide</span></div>
       <button class="slot-btn" onclick="triggerSlot(1)">+ Choisir image</button>
       <div class="fit-row">
-        <button class="fit-btn active" id="fit-1-cover" onclick="setFit(1,'cover')">Cover</button>
-        <button class="fit-btn" id="fit-1-contain" onclick="setFit(1,'contain')">Contain</button>
-        <button class="fit-btn" id="fit-1-fill" onclick="setFit(1,'fill')">Étirer</button>
+        <button class="fit-btn active" id="fit-1-cover"   onclick="setFit(1,'cover')">Cover</button>
+        <button class="fit-btn"        id="fit-1-contain" onclick="setFit(1,'contain')">Contain</button>
+        <button class="fit-btn"        id="fit-1-fill"    onclick="setFit(1,'fill')">Étirer</button>
       </div>
     </div>
 
-    <!-- SLOT 2 -->
     <div class="slot-card" id="card-2">
-      <div class="slot-header">
-        <div class="slot-dot" style="background:#a8e060"></div>
-        <span class="slot-name">Vecteezy / Logo</span>
-      </div>
-      <div class="slot-thumb-wrap">
-        <img class="slot-thumb" id="thumb-2">
-        <span class="slot-empty-hint">Vide</span>
-      </div>
+      <div class="slot-header"><div class="slot-dot" style="background:#a8e060"></div><span class="slot-name">Vecteezy / Logo</span></div>
+      <div class="slot-thumb-wrap"><img class="slot-thumb" id="thumb-2"><span class="slot-empty-hint">Vide</span></div>
       <button class="slot-btn" onclick="triggerSlot(2)">+ Choisir image</button>
       <div class="fit-row">
-        <button class="fit-btn active" id="fit-2-cover" onclick="setFit(2,'cover')">Cover</button>
-        <button class="fit-btn" id="fit-2-contain" onclick="setFit(2,'contain')">Contain</button>
-        <button class="fit-btn" id="fit-2-fill" onclick="setFit(2,'fill')">Étirer</button>
+        <button class="fit-btn active" id="fit-2-cover"   onclick="setFit(2,'cover')">Cover</button>
+        <button class="fit-btn"        id="fit-2-contain" onclick="setFit(2,'contain')">Contain</button>
+        <button class="fit-btn"        id="fit-2-fill"    onclick="setFit(2,'fill')">Étirer</button>
       </div>
     </div>
 
-    <!-- SLOT 3 -->
+<!-- maps-->
+ 
     <div class="slot-card" id="card-3">
-      <div class="slot-header">
-        <div class="slot-dot" style="background:#e060c0"></div>
-        <span class="slot-name">Carte / Map</span>
-      </div>
-      <div class="slot-thumb-wrap">
-        <img class="slot-thumb" id="thumb-3">
-        <span class="slot-empty-hint">Vide</span>
-      </div>
+      <div class="slot-header"><div class="slot-dot" style="background:#e060c0"></div><span class="slot-name">Carte / Map</span></div>
+      <div class="slot-thumb-wrap"><img class="slot-thumb" id="thumb-3"><span class="slot-empty-hint">Vide</span></div>
       <button class="slot-btn" onclick="triggerSlot(3)">+ Choisir image</button>
       <div class="fit-row">
-        <button class="fit-btn" id="fit-3-cover" onclick="setFit(3,'cover')">Cover</button>
+        <button class="fit-btn"        id="fit-3-cover"   onclick="setFit(3,'cover')">Cover</button>
         <button class="fit-btn active" id="fit-3-contain" onclick="setFit(3,'contain')">Contain</button>
-        <button class="fit-btn" id="fit-3-fill" onclick="setFit(3,'fill')">Étirer</button>
+        <button class="fit-btn"        id="fit-3-fill"    onclick="setFit(3,'fill')">Étirer</button>
       </div>
     </div>
 
     <input type="file" id="slotInput" accept="image/*">
 
     <hr class="divider">
+    <div class="stitle">📍 Tracer un trajet</div>
+    <select id="villeDepart"  class="rsel"><option value="">— Départ —</option></select>
+    <select id="villeArrivee" class="rsel"><option value="">— Arrivée —</option></select>
+    <button class="rbtn" id="btnTracer" style="background:#e97c1a">➕ Tracer la route</button>
+    <button class="rbtn" id="btnClear"  style="background:#2a2a3a">🗑️ Effacer tout</button>
+    <div class="rlist" id="rlist"></div>
+
+    <div class="stitle" style="margin-top:10px">✏️ Texte personnalisé</div>
+    <textarea id="texteZone" class="textarea" placeholder="Entrez votre texte ici..."></textarea>
+    <button class="rbtn" id="btnTexte" style="background:#4fa3ff;margin-top:5px">📝 Ajouter texte</button>
+
+    <hr class="divider">
     <button class="dl-btn" onclick="downloadImage()">⬇ Télécharger 1080×1920</button>
-    <div class="quality-badge">✓ Export PNG haute qualité</div>
-    <button class="reset-btn" onclick="resetAll()">✕ Réinitialiser</button>
+    <div class="qbadge">✓ Export PNG haute qualité</div>
+    <button class="rst-btn" onclick="resetAll()">✕ Réinitialiser</button>
   </div>
 
+  <!-- ── PREVIEW ── -->
   <div class="canvas-wrap">
-    <div id="canvasWrap"><canvas id="mainCanvas"></canvas></div>
-    <p class="hint">Les zones colorées indiquent l'emplacement exact · Cover / Contain / Étirer pour chaque calque</p>
+    <div id="composition">
+      <!-- canvas : fond + slots -->
+      <canvas id="bgCanvas" width="1080" height="1920" style="width:540px;height:960px"></canvas>
+      <!-- SVG overlay : viewBox 1080×1920 → lignes exactes -->
+      <svg id="routesSVG" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+  
   </div>
 </div>
 
