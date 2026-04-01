@@ -68,3 +68,8 @@ input[type=file]{display:none}
 .rtag{display:flex;align-items:center;justify-content:space-between;background:#1a1020;border:1px solid #3a2010;border-radius:5px;padding:3px 7px;font-size:10px;color:#e97c1a}
 .rtag button{background:none;border:none;color:#555;cursor:pointer;font-size:12px;padding:0 2px}
 .rtag button:hover{color:#e97c1a}
+
+/* NOUVEAU : Styles des boutons de couleur */
+.color-btn{padding:8px;border-radius:7px;border:2px solid transparent;color:#fff;font-size:11px;font-weight:700;cursor:pointer;transition:border-color .2s,transform .1s}
+.color-btn:hover{transform:scale(1.05)}
+.color-btn.active{border-color:#fff;box-shadow:0 0 8px rgba(255,255,255,0.3)}

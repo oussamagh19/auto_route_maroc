@@ -77,6 +77,13 @@
     <div class="stitle">📍 Tracer un trajet</div>
     <select id="villeDepart"  class="rsel"><option value="">— Départ —</option></select>
     <select id="villeArrivee" class="rsel"><option value="">— Arrivée —</option></select>
+    
+    <!-- NOUVEAU : Choix couleur (2 boutons) -->
+    <div style="display:flex; gap:6px; margin-bottom:8px;">
+      <button class="color-btn active" id="btnOrange" onclick="selectColor('#e97c1a')" style="background:#e97c1a; flex:1;">🟠 Orange</button>
+      <button class="color-btn" id="btnRouge" onclick="selectColor('#ff0000')" style="background:#ff0000; flex:1;">🔴 Rouge</button>
+    </div>
+    
     <button class="rbtn" id="btnTracer" style="background:#e97c1a">➕ Tracer la route</button>
     <button class="rbtn" id="btnClear"  style="background:#2a2a3a">🗑️ Effacer tout</button>
     <div class="rlist" id="rlist"></div>
@@ -105,4 +112,4 @@
 
 <script src="script.js"></script>
 </body>
-</html>
+</html>x

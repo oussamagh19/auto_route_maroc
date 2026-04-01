@@ -26,7 +26,6 @@ var VILLES = [
   {nom:"Oujda",      id:"oujda"}
 ];
 
-// FORMAT : "x1,y1 x2,y2 x3,y3 ..."  (coordonnées dans l'espace 1080×1920)
 var ROUTES = {
   "agadir-marrakech":
     "606.854,1025.43 593.194,1036.244 584.087,1042.505 577.826,1043.643 574.411,1048.766 "+
@@ -93,9 +92,6 @@ var ROUTES = {
     "622.743,975.828 615.344,983.797 612.783,1000.59 611.075,1013.96 609.937,1020.79 609.652,1022.79 609.937,1022.79"
 };
 
-// ════════════════════════════════════════════
-// CANVAS (fond + slots uniquement)
-// ════════════════════════════════════════════
 var NW=1080, NH=1920;
 var canvas = document.getElementById('bgCanvas');
 var ctx    = canvas.getContext('2d');
@@ -106,16 +102,13 @@ var bgImg  = null;
 var images = [null,null,null,null];
 var fits   = ['cover','cover','cover','contain' ];
 
-// ════════════════════════════════════════════
-// SVG OVERLAY — routes
-// ════════════════════════════════════════════
 var svg = document.getElementById('routesSVG');
 var SVG_NS = 'http://www.w3.org/2000/svg';
 
-var tracedRoutes = [];  // [{key, label, pointsStr}]
+var tracedRoutes = [];
 var texteGlobal  = '';
+var couleurSelectionnee = '#e97c1a';
 
-// ── drawFit (canvas) ──
 function drawFit(c2, img, dx, dy, dw, dh, mode) {
   var iw=img.naturalWidth, ih=img.naturalHeight;
   if (mode==='fill') { c2.drawImage(img,dx,dy,dw,dh); return; }
@@ -129,7 +122,6 @@ function drawFit(c2, img, dx, dy, dw, dh, mode) {
   }
 }
 
-// ── Dessiner canvas (fond + slots) ──
 function drawCanvas() {
   ctx.clearRect(0,0,NW,NH);
   ctx.fillStyle='#111'; ctx.fillRect(0,0,NW,NH);
@@ -153,7 +145,6 @@ function drawCanvas() {
     }
   });
 
-  // Texte personnalisé
   if (texteGlobal) {
     ctx.save();
     ctx.fillStyle='#ffffff'; ctx.font='bold 36px "Segoe UI",Arial,sans-serif';
@@ -169,31 +160,25 @@ function drawCanvas() {
   }
 }
 
-// ── Mettre à jour SVG routes ──
 function updateSVG() {
-  // vider
   while (svg.firstChild) svg.removeChild(svg.firstChild);
 
   tracedRoutes.forEach(function(r) {
-    // Halo blanc dessous
+    var routeColor = r.color || '#e97c1a';
+    
     var halo = document.createElementNS(SVG_NS, 'polyline');
     halo.setAttribute('points', r.pointsStr);
     halo.setAttribute('fill', 'none');
-    halo.setAttribute('stroke', '#ffffff');
     halo.setAttribute('stroke-width', '5');
     halo.setAttribute('stroke-linecap', 'round');
     halo.setAttribute('stroke-linejoin', 'round');
-    //halo.setAttribute('opacity', '0.85');
-    halo.setAttribute('filter', 'drop-shadow(0 0 2px rgba(0,0,0,0.4))');
     svg.appendChild(halo);
 
-    // Ligne orange
     var line = document.createElementNS(SVG_NS, 'polyline');
     line.setAttribute('points', r.pointsStr);
     line.setAttribute('fill', 'none');
-    line.setAttribute('stroke', '#e97c1a');
+    line.setAttribute('stroke', routeColor);
     line.setAttribute('stroke-width', '3.5');
-
     line.setAttribute('stroke-linecap', 'round');
     line.setAttribute('stroke-linejoin', 'round');
     svg.appendChild(line);
@@ -205,9 +190,12 @@ function draw() {
   updateSVG();
 }
 
-// ════════════════════════════════════════════
-// ROUTES UI
-// ════════════════════════════════════════════
+function selectColor(color) {
+  couleurSelectionnee = color;
+  document.getElementById('btnOrange').classList.toggle('active', color === '#e97c1a');
+  document.getElementById('btnRouge').classList.toggle('active', color === '#ff0000');
+}
+
 (function initSelects(){
   var d=document.getElementById('villeDepart'), a=document.getElementById('villeArrivee');
   VILLES.forEach(function(v){
@@ -232,7 +220,13 @@ function tracerRoute() {
 
   var dNom=dEl.options[dEl.selectedIndex].text;
   var aNom=aEl.options[aEl.selectedIndex].text;
-  tracedRoutes.push({ key:key, label:dNom+' → '+aNom, pointsStr:pts });
+  
+  tracedRoutes.push({ 
+    key:key, 
+    label:dNom+' → '+aNom, 
+    pointsStr:pts,
+    color:couleurSelectionnee
+  });
   renderList();
   updateSVG();
 }
@@ -244,17 +238,16 @@ function supprimerRoute(i) { tracedRoutes.splice(i,1); renderList(); updateSVG()
 function renderList() {
   var list=document.getElementById('rlist'); list.innerHTML='';
   tracedRoutes.forEach(function(r,i){
+    var couleur = r.color || '#e97c1a';
+    var emoji = couleur === '#e97c1a' ? '🟠' : '🔴';
     var div=document.createElement('div'); div.className='rtag';
-    div.innerHTML='<span>'+r.label+'</span><button onclick="supprimerRoute('+i+')">✕</button>';
+    div.innerHTML='<span>'+emoji+' '+r.label+'</span><button onclick="supprimerRoute('+i+')">✕</button>';
     list.appendChild(div);
   });
 }
 
 function ajouterTexte() { texteGlobal=document.getElementById('texteZone').value; draw(); }
 
-// ════════════════════════════════════════════
-// BACKGROUND & SLOTS
-// ════════════════════════════════════════════
 document.getElementById('bgInput').addEventListener('change', function(e){
   var f=e.target.files[0]; if(!f) return;
   var img=new Image();
@@ -299,12 +292,7 @@ function setFit(i,mode){
   draw();
 }
 
-// ════════════════════════════════════════════
-// TÉLÉCHARGER — canvas 1080×1920
-// On fusionne canvas + SVG (rendu via Image blob)
-// ════════════════════════════════════════════
 function downloadImage() {
-  // 1. Sérialiser le SVG en data URL
   var svgClone = svg.cloneNode(true);
   svgClone.setAttribute('width',  NW);
   svgClone.setAttribute('height', NH);
@@ -314,16 +302,13 @@ function downloadImage() {
   var svgBlob = new Blob([svgData], {type:'image/svg+xml;charset=utf-8'});
   var svgURL  = URL.createObjectURL(svgBlob);
 
-  // 2. Créer un canvas de sortie et y dessiner canvas + SVG
   var out  = document.createElement('canvas');
   out.width=NW; out.height=NH;
   var oc   = out.getContext('2d');
   oc.imageSmoothingEnabled=true; oc.imageSmoothingQuality='high';
 
-  // Copier le contenu du bgCanvas (déjà en 1080×1920)
   oc.drawImage(canvas, 0, 0);
 
-  // Charger le SVG comme image et le dessiner par-dessus
   var svgImg = new Image();
   svgImg.onload = function() {
     oc.drawImage(svgImg, 0, 0, NW, NH);
@@ -335,7 +320,6 @@ function downloadImage() {
     a.click();
   };
   svgImg.onerror = function() {
-    // Fallback : télécharger sans routes SVG
     var a = document.createElement('a');
     a.download = 'composition_adm.png';
     a.href = canvas.toDataURL('image/png');
@@ -344,12 +328,11 @@ function downloadImage() {
   svgImg.src = svgURL;
 }
 
-// ════════════════════════════════════════════
-// RESET
-// ════════════════════════════════════════════
 function resetAll(){
   bgImg=null; images=[null,null,null,null]; fits=['cover','cover','cover','contain'];
   tracedRoutes=[]; texteGlobal='';
+  couleurSelectionnee='#e97c1a';
+  
   [0,1,2,3].forEach(function(i){
     var th=document.getElementById('thumb-'+i);
     th.src=''; th.style.display='none'; th.nextElementSibling.style.display='';
@@ -361,21 +344,16 @@ function resetAll(){
       if(b) b.classList.toggle('active',m===def);
     });
   });
+  
   document.getElementById('villeDepart').value='';
   document.getElementById('villeArrivee').value='';
   document.getElementById('texteZone').value='';
+  
+  selectColor('#e97c1a');
   renderList();
   draw();
 }
-function routeExists(d,a){
-  return ROUTES[d+'-'+a] || ROUTES[a+'-'+d];
-}
 
-
-
-// ════════════════════════════════════════════
-// INIT
-// ════════════════════════════════════════════
 document.getElementById('btnTracer').addEventListener('click', tracerRoute);
 document.getElementById('btnClear').addEventListener('click',  effacerTout);
 document.getElementById('btnTexte').addEventListener('click',  ajouterTexte);
