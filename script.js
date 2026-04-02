@@ -2,7 +2,7 @@ var ZONES = [
   {label:'Avis Important', x:261.30, y:214.06, w:547.54, h:107.00, color:'#e97c1a'},
   {label:'Forme orange',   x:237.71, y:354.39, w:606.74, h:364.27, color:'#4fa3ff'},
   {label:'Vecteezy',       x:584.10, y:522.55, w:234.50, h:126.76, color:'#a8e060'},
-{label:'Map', x:0, y:0, w:1080, h:1920, color:'#e060c0'}
+  {label:'Map', x:0, y:0, w:1080, h:1920, color:'#e060c0'}
 ];
 
 var VILLES = [
@@ -109,6 +109,22 @@ var tracedRoutes = [];
 var texteGlobal  = '';
 var couleurSelectionnee = '#e97c1a';
 
+// ╔═════════════════════════════════════════════════════════════╗
+// ║ NOUVEAU : TEXTE AVANCÉ AVEC COLORATION SÉLECTIVE PAR MOTS  ║
+// ╚═════════════════════════════════════════════════════════════╝
+
+var texteAvance = {
+  texte: '',
+  tailleCouleur: 36,
+  visible: false,
+  colorStyles: [] // Array de {mot: "...", couleur: "#..."}
+};
+
+var textZoneX = 31.98;
+var textZoneY = 794.67;
+var textZoneW = 465.86;
+var textZoneH = 250.75;
+
 function drawFit(c2, img, dx, dy, dw, dh, mode) {
   var iw=img.naturalWidth, ih=img.naturalHeight;
   if (mode==='fill') { c2.drawImage(img,dx,dy,dw,dh); return; }
@@ -120,6 +136,77 @@ function drawFit(c2, img, dx, dy, dw, dh, mode) {
   } else {
     c2.drawImage(img,ox,oy,fw,fh);
   }
+}
+
+// NOUVEAU : Fonction pour afficher le texte avec coloration sélective
+function drawAdvancedTextWithColors(c, texte, x, y, w, h, taille, colorStyles) {
+  if (!texte) return;
+  
+  c.save();
+  c.font = 'bold ' + taille + 'px "Segoe UI", Arial, sans-serif';
+  c.textAlign = 'left';
+  c.textBaseline = 'top';
+  
+  c.shadowColor = 'rgba(0, 0, 0, 0.8)';
+  c.shadowBlur = 8;
+  c.shadowOffsetX = 2;
+  c.shadowOffsetY = 2;
+  
+  var lineHeight = taille * 1.3;
+  var padding = 15;
+  var maxWidth = w - (padding * 2);
+  var currentY = y + padding;
+  
+  var words = texte.split(' ');
+  var ligne = '';
+  var lineWords = [];
+  
+  // Construire les lignes
+  words.forEach(function(word) {
+    var testLigne = ligne ? ligne + ' ' + word : word;
+    var metrics = c.measureText(testLigne);
+    
+    if (metrics.width > maxWidth && ligne) {
+      // Dessiner cette ligne et commencer une nouvelle
+      drawLineWithColors(c, lineWords, x + padding, currentY, taille, colorStyles);
+      currentY += lineHeight;
+      ligne = word;
+      lineWords = [word];
+    } else {
+      ligne = testLigne;
+      lineWords.push(word);
+    }
+  });
+  
+  // Dernière ligne
+  if (lineWords.length > 0) {
+    drawLineWithColors(c, lineWords, x + padding, currentY, taille, colorStyles);
+  }
+  
+  c.restore();
+}
+
+// Fonction helper pour dessiner une ligne avec couleurs
+function drawLineWithColors(c, words, x, y, taille, colorStyles) {
+  var currentX = x;
+  
+  words.forEach(function(word) {
+    // Chercher si ce mot a une couleur spécifique
+    var wordColor = '#ffffff'; // Couleur par défaut (blanc)
+    
+    colorStyles.forEach(function(style) {
+      if (word.toLowerCase().includes(style.mot.toLowerCase()) || 
+          style.mot.toLowerCase().includes(word.toLowerCase())) {
+        wordColor = style.couleur;
+      }
+    });
+    
+    c.fillStyle = wordColor;
+    c.fillText(word + ' ', currentX, y);
+    
+    var metrics = c.measureText(word + ' ');
+    currentX += metrics.width;
+  });
 }
 
 function drawCanvas() {
@@ -145,10 +232,18 @@ function drawCanvas() {
     }
   });
 
+  // Afficher le texte avancé avec coloration sélective
+  if (texteAvance.visible && texteAvance.texte) {
+    drawAdvancedTextWithColors(ctx, texteAvance.texte, textZoneX, textZoneY, textZoneW, textZoneH, texteAvance.tailleCouleur, texteAvance.colorStyles);
+  }
+
   if (texteGlobal) {
     ctx.save();
-    ctx.fillStyle='#ffffff'; ctx.font='bold 36px "Segoe UI",Arial,sans-serif';
-    ctx.textAlign='center'; ctx.shadowColor='rgba(0,0,0,0.8)'; ctx.shadowBlur=8;
+    ctx.fillStyle='#ffffff';
+    ctx.font='bold 36px "Segoe UI",Arial,sans-serif';
+    ctx.textAlign='center';
+    ctx.shadowColor='rgba(0,0,0,0.8)';
+    ctx.shadowBlur=8;
     var x=NW/2, y=NH-130;
     var mots=texteGlobal.split(' '), ligne='';
     mots.forEach(function(m){
@@ -246,7 +341,106 @@ function renderList() {
   });
 }
 
-function ajouterTexte() { texteGlobal=document.getElementById('texteZone').value; draw(); }
+function ajouterTexte() { 
+  texteGlobal = document.getElementById('texteZone').value; 
+  draw(); 
+}
+
+// NOUVEAU : Fonction pour mettre à jour le texte avancé
+function mettreAJourTexteAvance() {
+  var texte = document.getElementById('texteAvance').value;
+  var taille = parseInt(document.getElementById('texteSize').value);
+  
+  texteAvance = {
+    texte: texte,
+    tailleCouleur: taille,
+    visible: texte.trim() !== '',
+    colorStyles: texteAvance.colorStyles // Garder les styles
+  };
+  
+  draw();
+}
+
+// NOUVEAU : Ajouter une coloration pour un mot
+function ajouterColorationMot() {
+  var motInput = document.getElementById('motAColorier').value.trim();
+  var couleur = document.getElementById('couleurMotSelection').value;
+  
+  if (!motInput) {
+    alert('Entrez un mot ou une phrase');
+    return;
+  }
+  
+  // Vérifier si le mot existe déjà
+  var existe = texteAvance.colorStyles.some(function(s) {
+    return s.mot.toLowerCase() === motInput.toLowerCase();
+  });
+  
+  if (existe) {
+    // Mettre à jour la couleur
+    texteAvance.colorStyles.forEach(function(s) {
+      if (s.mot.toLowerCase() === motInput.toLowerCase()) {
+        s.couleur = couleur;
+      }
+    });
+  } else {
+    // Ajouter un nouveau style
+    texteAvance.colorStyles.push({
+      mot: motInput,
+      couleur: couleur
+    });
+  }
+  
+  // Réinitialiser les inputs
+  document.getElementById('motAColorier').value = '';
+  document.getElementById('couleurMotSelection').value = '#ff0000';
+  
+  // Mettre à jour l'affichage
+  rendreListeMots();
+  draw();
+}
+
+// Afficher la liste des mots colorés
+function rendreListeMots() {
+  var list = document.getElementById('listeMotsColores');
+  list.innerHTML = '';
+  
+  texteAvance.colorStyles.forEach(function(style, index) {
+    var div = document.createElement('div');
+    div.style.display = 'flex';
+    div.style.alignItems = 'center';
+    div.style.marginBottom = '5px';
+    div.style.padding = '6px';
+    div.style.borderRadius = '5px';
+    div.style.border = '1px solid #222';
+    div.style.background = '#0f0f1a';
+    
+    div.innerHTML = '<span style="flex:1; font-size:11px; color:#ccc;">' + style.mot + '</span>' +
+                    '<div style="width:20px; height:20px; background:' + style.couleur + '; border-radius:3px; margin:0 8px;"></div>' +
+                    '<button onclick="supprimerColoration(' + index + ')" style="background:none; border:none; color:#555; cursor:pointer; padding:2px 6px;">✕</button>';
+    
+    list.appendChild(div);
+  });
+}
+
+function supprimerColoration(index) {
+  texteAvance.colorStyles.splice(index, 1);
+  rendreListeMots();
+  draw();
+}
+
+function effacerTexteAvance() {
+  texteAvance = {
+    texte: '',
+    tailleCouleur: 36,
+    visible: false,
+    colorStyles: []
+  };
+  document.getElementById('texteAvance').value = '';
+  document.getElementById('texteSize').value = '36';
+  rendreListeMots();
+  draw();
+}
 
 document.getElementById('bgInput').addEventListener('change', function(e){
   var f=e.target.files[0]; if(!f) return;
@@ -333,6 +527,13 @@ function resetAll(){
   tracedRoutes=[]; texteGlobal='';
   couleurSelectionnee='#e97c1a';
   
+  texteAvance = {
+    texte: '',
+    tailleCouleur: 36,
+    visible: false,
+    colorStyles: []
+  };
+  
   [0,1,2,3].forEach(function(i){
     var th=document.getElementById('thumb-'+i);
     th.src=''; th.style.display='none'; th.nextElementSibling.style.display='';
@@ -344,18 +545,28 @@ function resetAll(){
       if(b) b.classList.toggle('active',m===def);
     });
   });
-  
+
   document.getElementById('villeDepart').value='';
   document.getElementById('villeArrivee').value='';
   document.getElementById('texteZone').value='';
+  document.getElementById('texteAvance').value='';
+  document.getElementById('texteSize').value='36';
+  document.getElementById('motAColorier').value='';
+  document.getElementById('couleurMotSelection').value='#ff0000';
   
   selectColor('#e97c1a');
   renderList();
+  rendreListeMots();
   draw();
 }
 
+// EVENT LISTENERS
+document.getElementById('texteZone').addEventListener('input', ajouterTexte);
+document.getElementById('texteAvance').addEventListener('input', mettreAJourTexteAvance);
+document.getElementById('texteSize').addEventListener('change', mettreAJourTexteAvance);
+document.getElementById('btnAjouterColoration').addEventListener('click', ajouterColorationMot);
+document.getElementById('btnEffacerTexteAvance').addEventListener('click', effacerTexteAvance);
 document.getElementById('btnTracer').addEventListener('click', tracerRoute);
-document.getElementById('btnClear').addEventListener('click',  effacerTout);
-document.getElementById('btnTexte').addEventListener('click',  ajouterTexte);
+document.getElementById('btnClear').addEventListener('click', effacerTout);
 
 draw();

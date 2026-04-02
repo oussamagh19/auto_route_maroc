@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="style.css">
-<title>Compositeur ADM - Routes du Maroc</title>
+<title>Compositeur ADM - Coloration Sélective</title>
 
 </head>
 <body>
-<h1>Compositeur d'Images · Autoroutes du Maroc</h1>
+<h1>Compositeur d'Images · Autoroutes du Maroc · COLORATION SÉLECTIVE 🎨</h1>
 <div class="workspace">
 
   <!-- ── PANEL ── -->
@@ -78,7 +78,6 @@
     <select id="villeDepart"  class="rsel"><option value="">— Départ —</option></select>
     <select id="villeArrivee" class="rsel"><option value="">— Arrivée —</option></select>
     
-    <!-- NOUVEAU : Choix couleur (2 boutons) -->
     <div style="display:flex; gap:6px; margin-bottom:8px;">
       <button class="color-btn active" id="btnOrange" onclick="selectColor('#e97c1a')" style="background:#e97c1a; flex:1;">🟠 Orange</button>
       <button class="color-btn" id="btnRouge" onclick="selectColor('#ff0000')" style="background:#ff0000; flex:1;">🔴 Rouge</button>
@@ -88,28 +87,69 @@
     <button class="rbtn" id="btnClear"  style="background:#2a2a3a">🗑️ Effacer tout</button>
     <div class="rlist" id="rlist"></div>
 
-    <div class="stitle" style="margin-top:10px">✏️ Texte personnalisé</div>
-    <textarea id="texteZone" class="textarea" placeholder="Entrez votre texte ici..."></textarea>
-    <button class="rbtn" id="btnTexte" style="background:#4fa3ff;margin-top:5px">📝 Ajouter texte</button>
+    <hr class="divider">
+
+    <div class="stitle">✏️ Texte Simple (Bas) - Dynamique</div>
+    <textarea id="texteZone" class="textarea" placeholder="Texte en bas de l'image (blanc)"></textarea>
+
+    <hr class="divider">
+
+    <div class="stitle">🎨 Texte Avancé (Gauche) - COLORATION SÉLECTIVE ⚡</div>
+    <p style="font-size:9px;color:#ff6600;margin-bottom:8px;">✨ Tapez le texte complet, puis coloriez les mots que vous voulez!</p>
+
+    <div style="margin-bottom:8px;">
+      <textarea id="texteAvance" class="textarea" placeholder="Ex: ADM recommande vivement aux usagers de l'axe autoroutier Marrakech-Agadir, de faire preuve de vigilance et de bien se renseigner sur les conditions de circulation avant tout déplacement." rows="4"></textarea>
+    </div>
+
+    <div style="margin-bottom:8px;">
+      <label style="font-size:10px;color:#666;display:block;margin-bottom:5px;">📏 Taille du texte:</label>
+      <select id="texteSize" style="width:100%;padding:8px;border-radius:7px;border:1px solid #222;background:#1a1a28;color:#ccc;font-size:11px;">
+        <option value="28">28 px (petit)</option>
+        <option value="36" selected>36 px (normal)</option>
+        <option value="48">48 px (grand)</option>
+        <option value="60">60 px (très grand)</option>
+      </select>
+    </div>
+
+    <!-- ── COLORATION SÉLECTIVE ── -->
+    <div style="background:#0f0f1a; border:1px solid #1e1e2a; border-radius:8px; padding:10px; margin-bottom:10px;">
+      <p style="font-size:11px;color:#ff9900;margin:0 0 8px 0;font-weight:600;">🎨 Coloration Sélective</p>
+      
+      <div style="margin-bottom:8px;">
+        <label style="font-size:9px;color:#666;display:block;margin-bottom:4px;">Mot ou phrase à colorer:</label>
+        <input type="text" id="motAColorier" class="textarea" placeholder="Ex: Marrakech-Agadir" style="min-height:30px;padding:6px;margin-bottom:6px;">
+      </div>
+
+      <div style="display:flex; gap:6px; margin-bottom:8px; align-items:center;">
+        <label style="font-size:9px;color:#666;white-space:nowrap;">Couleur:</label>
+        <input type="color" id="couleurMotSelection" value="#ff0000" style="width:40px;height:32px;border:none;border-radius:6px;cursor:pointer;">
+      </div>
+
+      <button class="rbtn" id="btnAjouterColoration" style="background:#ff6600;margin-bottom:8px;padding:7px;">➕ Ajouter Coloration</button>
+
+      <p style="font-size:9px;color:#666;margin:0 0 6px 0;">Mots colorés:</p>
+      <div id="listeMotsColores" style="max-height:100px;overflow-y:auto;"></div>
+    </div>
+
+    <button class="rbtn" id="btnEffacerTexteAvance" style="background:#555;margin-bottom:10px;">✕ Effacer le texte</button>
 
     <hr class="divider">
     <button class="dl-btn" onclick="downloadImage()">⬇ Télécharger 1080×1920</button>
     <div class="qbadge">✓ Export PNG haute qualité</div>
-    <button class="rst-btn" onclick="resetAll()">✕ Réinitialiser</button>
+    <button class="rst-btn" onclick="resetAll()">✕ Réinitialiser tout</button>
   </div>
 
   <!-- ── PREVIEW ── -->
   <div class="canvas-wrap">
     <div id="composition">
-      <!-- canvas : fond + slots -->
       <canvas id="bgCanvas" width="1080" height="1920" style="width:540px;height:960px"></canvas>
-      <!-- SVG overlay : viewBox 1080×1920 → lignes exactes -->
       <svg id="routesSVG" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg"></svg>
     </div>
-  
   </div>
+  
+
 </div>
 
 <script src="script.js"></script>
 </body>
-</html>x
+</html>
