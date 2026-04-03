@@ -110,20 +110,32 @@ var texteGlobal  = '';
 var couleurSelectionnee = '#e97c1a';
 
 // ╔═════════════════════════════════════════════════════════════╗
-// ║ NOUVEAU : TEXTE AVANCÉ AVEC COLORATION SÉLECTIVE PAR MOTS  ║
+// ║ SYSTÈME DE TEXTES MULTIPLES DANS ZONE ORANGE              ║
 // ╚═════════════════════════════════════════════════════════════╝
+
+var textesOrange = []; // Tableau de textes avec positions
+var texteDragActif = null; // Index du texte en train d'être déplacé
+var dragOffsetX = 0, dragOffsetY = 0;
+var ZONE_ORANGE = ZONES[1];
 
 var texteAvance = {
   texte: '',
-  tailleCouleur: 36,
+  taille: 36,
   visible: false,
-  colorStyles: [] // Array de {mot: "...", couleur: "#..."}
+  colorStyles: [],
+  posX: 540,  // Position personnalisée X (centre par défaut)
+  posY: 1600,  // Position personnalisée Y (bas par défaut)
+  alignment: 'left'  // left, center, right
 };
 
-var textZoneX = 31.98;
-var textZoneY = 794.67;
-var textZoneW = 465.86;
-var textZoneH = 250.75;
+var textAvanceDragActif = false;
+var dragOffsetAdvanceX = 0, dragOffsetAdvanceY = 0;
+
+var textZones = {
+  gauche: {x: 31.98, y: 794.67, w: 465.86, h: 250.75},
+  centre: {x: 307.12, y: 794.67, w: 465.86, h: 250.75},
+  droite: {x: 582.26, y: 794.67, w: 465.86, h: 250.75}
+};
 
 function drawFit(c2, img, dx, dy, dw, dh, mode) {
   var iw=img.naturalWidth, ih=img.naturalHeight;
@@ -138,13 +150,72 @@ function drawFit(c2, img, dx, dy, dw, dh, mode) {
   }
 }
 
-// NOUVEAU : Fonction pour afficher le texte avec coloration sélective
-function drawAdvancedTextWithColors(c, texte, x, y, w, h, taille, colorStyles) {
+// Dessiner tous les textes de la zone orange
+function drawTextesOrange(c) {
+  if (textesOrange.length === 0) return;
+
+  textesOrange.forEach(function(texte, index) {
+    var fontWeight = texte.bold ? 'bold ' : '';
+    c.save();
+    
+    c.font = fontWeight + texte.taille + 'px "Segoe UI", Arial, sans-serif';
+    c.fillStyle = texte.couleur;
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    
+    c.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    c.shadowBlur = 6;
+    c.shadowOffsetX = 1;
+    c.shadowOffsetY = 1;
+    
+    var maxWidth = ZONE_ORANGE.w - 40;
+    var lineHeight = texte.taille * 1.4;
+    
+    // Découper en lignes si nécessaire
+    var words = texte.texte.split(' ');
+    var lines = [];
+    var currentLine = '';
+    
+    words.forEach(function(word) {
+      var testLine = currentLine ? currentLine + ' ' + word : word;
+      var metrics = c.measureText(testLine);
+      
+      if (metrics.width > maxWidth && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = testLine;
+      }
+    });
+    
+    if (currentLine) lines.push(currentLine);
+    
+    // Afficher chaque ligne
+    var startY = texte.posY - (lines.length - 1) * lineHeight / 2;
+    lines.forEach(function(line, lineIndex) {
+      var lineY = startY + lineIndex * lineHeight;
+      c.fillText(line, texte.posX, lineY);
+    });
+    
+    // Afficher le rectangle de sélection si en édition
+    if (texteDragActif === index) {
+      c.strokeStyle = '#00ff00';
+      c.lineWidth = 2;
+      c.setLineDash([5, 5]);
+      c.strokeRect(texte.posX - maxWidth/2 - 10, texte.posY - texte.taille, maxWidth + 20, texte.taille * 2.5);
+      c.setLineDash([]);
+    }
+
+    c.restore();
+  });
+}
+
+function drawAdvancedTextWithColors(c, texte, posX, posY, taille, colorStyles, alignment) {
   if (!texte) return;
   
   c.save();
   c.font = 'bold ' + taille + 'px "Segoe UI", Arial, sans-serif';
-  c.textAlign = 'left';
+  c.textAlign = alignment || 'left';
   c.textBaseline = 'top';
   
   c.shadowColor = 'rgba(0, 0, 0, 0.8)';
@@ -154,45 +225,72 @@ function drawAdvancedTextWithColors(c, texte, x, y, w, h, taille, colorStyles) {
   
   var lineHeight = taille * 1.3;
   var padding = 15;
-  var maxWidth = w - (padding * 2);
-  var currentY = y + padding;
+  var maxWidth = 400; // Largeur max du texte
+  var currentY = posY;
   
   var words = texte.split(' ');
-  var ligne = '';
   var lineWords = [];
   
-  // Construire les lignes
+  // Ajuster posX selon l'alignement pour le calcul
+  var drawX = posX;
+  if (alignment === 'center') {
+    drawX = posX;
+  } else if (alignment === 'right') {
+    drawX = posX;
+  }
+  
   words.forEach(function(word) {
-    var testLigne = ligne ? ligne + ' ' + word : word;
-    var metrics = c.measureText(testLigne);
+    var testLine = lineWords.length > 0 ? lineWords.join(' ') + ' ' + word : word;
+    var metrics = c.measureText(testLine);
     
-    if (metrics.width > maxWidth && ligne) {
-      // Dessiner cette ligne et commencer une nouvelle
-      drawLineWithColors(c, lineWords, x + padding, currentY, taille, colorStyles);
+    if (metrics.width > maxWidth && lineWords.length > 0) {
+      drawLineWithColors(c, lineWords, drawX, currentY, taille, colorStyles, alignment);
       currentY += lineHeight;
-      ligne = word;
       lineWords = [word];
     } else {
-      ligne = testLigne;
       lineWords.push(word);
     }
   });
   
-  // Dernière ligne
   if (lineWords.length > 0) {
-    drawLineWithColors(c, lineWords, x + padding, currentY, taille, colorStyles);
+    drawLineWithColors(c, lineWords, drawX, currentY, taille, colorStyles, alignment);
+  }
+  
+  // Afficher le rectangle de sélection si en drag
+  if (textAvanceDragActif) {
+    c.strokeStyle = '#00ff00';
+    c.lineWidth = 2;
+    c.setLineDash([5, 5]);
+    var totalHeight = (Math.ceil(words.length / 3)) * lineHeight;
+    
+    var rectX = drawX;
+    if (alignment === 'center') {
+      rectX = drawX - maxWidth / 2;
+    } else if (alignment === 'right') {
+      rectX = drawX - maxWidth;
+    }
+    
+    c.strokeRect(rectX - 10, posY - 10, maxWidth + 20, totalHeight + 20);
+    c.setLineDash([]);
   }
   
   c.restore();
 }
 
-// Fonction helper pour dessiner une ligne avec couleurs
-function drawLineWithColors(c, words, x, y, taille, colorStyles) {
+function drawLineWithColors(c, words, x, y, taille, colorStyles, alignment) {
   var currentX = x;
+  var line = words.join(' ');
+  var lineWidth = c.measureText(line).width;
+  
+  // Ajuster le point de départ selon l'alignement
+  if (alignment === 'center') {
+    currentX = x - lineWidth / 2;
+  } else if (alignment === 'right') {
+    currentX = x - lineWidth;
+  }
   
   words.forEach(function(word) {
-    // Chercher si ce mot a une couleur spécifique
-    var wordColor = '#ffffff'; // Couleur par défaut (blanc)
+    var wordColor = '#ffffff';
     
     colorStyles.forEach(function(style) {
       if (word.toLowerCase().includes(style.mot.toLowerCase()) || 
@@ -202,7 +300,12 @@ function drawLineWithColors(c, words, x, y, taille, colorStyles) {
     });
     
     c.fillStyle = wordColor;
+    
+    // Sauvegarder temporairement pour chaque mot
+    var savedAlign = c.textAlign;
+    c.textAlign = 'left';
     c.fillText(word + ' ', currentX, y);
+    c.textAlign = savedAlign;
     
     var metrics = c.measureText(word + ' ');
     currentX += metrics.width;
@@ -232,9 +335,12 @@ function drawCanvas() {
     }
   });
 
-  // Afficher le texte avancé avec coloration sélective
+  // Afficher tous les textes orange
+  drawTextesOrange(ctx);
+
+  // Afficher le texte avancé avec position libre
   if (texteAvance.visible && texteAvance.texte) {
-    drawAdvancedTextWithColors(ctx, texteAvance.texte, textZoneX, textZoneY, textZoneW, textZoneH, texteAvance.tailleCouleur, texteAvance.colorStyles);
+    drawAdvancedTextWithColors(ctx, texteAvance.texte, texteAvance.posX, texteAvance.posY, texteAvance.taille, texteAvance.colorStyles, texteAvance.alignment);
   }
 
   if (texteGlobal) {
@@ -346,61 +452,146 @@ function ajouterTexte() {
   draw(); 
 }
 
-// NOUVEAU : Fonction pour mettre à jour le texte avancé
+// ╔═════════════════════════════════════════════════════════════╗
+// ║ GESTION DES TEXTES ORANGE (MULTIPLES)                      ║
+// ╚═════════════════════════════════════════════════════════════╝
+
+function ajouterTexteOrange() {
+  var texte = document.getElementById('texteOrange').value;
+  
+  if (!texte.trim()) {
+    alert('Veuillez entrer un texte');
+    return;
+  }
+  
+  // Ajouter le texte au tableau
+  var nouveauTexte = {
+    id: Date.now(),
+    texte: texte,
+    taille: parseInt(document.getElementById('tailleOrange').value),
+    bold: document.getElementById('btnBold').classList.contains('active'),
+    couleur: document.getElementById('couleurTexteOrange').value,
+    posX: ZONE_ORANGE.x + ZONE_ORANGE.w / 2, // Centre par défaut
+    posY: ZONE_ORANGE.y + ZONE_ORANGE.h / 2  // Centre par défaut
+  };
+  
+  textesOrange.push(nouveauTexte);
+  
+  // Réinitialiser l'input
+  document.getElementById('texteOrange').value = '';
+  
+  // Mettre à jour l'affichage
+  rendreListeTextesOrange();
+  draw();
+}
+
+function rendreListeTextesOrange() {
+  var liste = document.getElementById('listeTextesOrange');
+  liste.innerHTML = '';
+  
+  textesOrange.forEach(function(t, index) {
+    var div = document.createElement('div');
+    div.className = 'texte-item';
+    
+    var isBold = t.bold ? 'B' : '';
+    var content = document.createElement('div');
+    content.className = 'texte-item-content';
+    content.innerHTML = 
+      '<div class="texte-item-text" title="' + t.texte + '">' + t.texte + '</div>' +
+      '<div class="texte-item-info">' +
+        '<span style="color: ' + t.couleur + ';">■</span>' +
+        '<span>' + t.taille + 'px</span>' +
+        (isBold ? '<span>B</span>' : '') +
+      '</div>';
+    
+    var btnDelete = document.createElement('button');
+    btnDelete.textContent = '✕';
+    btnDelete.onclick = function() { supprimerTexteOrange(index); };
+    
+    div.appendChild(content);
+    div.appendChild(btnDelete);
+    liste.appendChild(div);
+  });
+}
+
+function supprimerTexteOrange(index) {
+  textesOrange.splice(index, 1);
+  rendreListeTextesOrange();
+  draw();
+}
+
+function effacerTousTextes() {
+  textesOrange = [];
+  rendreListeTextesOrange();
+  draw();
+}
+
+// Gestion de la taille avec slider
+document.getElementById('tailleOrange').addEventListener('input', function(e) {
+  var taille = parseInt(e.target.value);
+  document.getElementById('tailleValue').textContent = taille + ' px';
+});
+
+// Toggle Bold
+document.getElementById('btnBold').addEventListener('click', function() {
+  this.classList.toggle('active');
+  
+  if (this.classList.contains('active')) {
+    this.style.background = '#1e1020';
+    this.style.color = '#e97c1a';
+    this.style.borderColor = '#3a2010';
+  } else {
+    this.style.background = '#111118';
+    this.style.color = '#444';
+    this.style.borderColor = '#1e1e2e';
+  }
+});
+
+// Mettre à jour le texte avancé
 function mettreAJourTexteAvance() {
   var texte = document.getElementById('texteAvance').value;
   var taille = parseInt(document.getElementById('texteSize').value);
   
-  texteAvance = {
-    texte: texte,
-    tailleCouleur: taille,
-    visible: texte.trim() !== '',
-    colorStyles: texteAvance.colorStyles // Garder les styles
-  };
+  texteAvance.texte = texte;
+  texteAvance.taille = taille;
+  texteAvance.visible = texte.trim() !== '';
   
   draw();
 }
 
-// NOUVEAU : Ajouter une coloration pour un mot
-function ajouterColorationMot() {
-  var motInput = document.getElementById('motAColorier').value.trim();
-  var couleur = document.getElementById('couleurMotSelection').value;
+// Colorer le texte sélectionné
+function colorerTexteSelectionne() {
+  var textarea = document.getElementById('texteAvance');
+  var texteSelectionne = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
   
-  if (!motInput) {
-    alert('Entrez un mot ou une phrase');
+  if (!texteSelectionne.trim()) {
+    alert('Veuillez sélectionner du texte à colorer');
     return;
   }
   
-  // Vérifier si le mot existe déjà
+  var couleur = document.getElementById('couleurMotSelection').value;
+  
   var existe = texteAvance.colorStyles.some(function(s) {
-    return s.mot.toLowerCase() === motInput.toLowerCase();
+    return s.mot.toLowerCase() === texteSelectionne.toLowerCase();
   });
   
   if (existe) {
-    // Mettre à jour la couleur
     texteAvance.colorStyles.forEach(function(s) {
-      if (s.mot.toLowerCase() === motInput.toLowerCase()) {
+      if (s.mot.toLowerCase() === texteSelectionne.toLowerCase()) {
         s.couleur = couleur;
       }
     });
   } else {
-    // Ajouter un nouveau style
     texteAvance.colorStyles.push({
-      mot: motInput,
+      mot: texteSelectionne,
       couleur: couleur
     });
   }
   
-  // Réinitialiser les inputs
-  document.getElementById('motAColorier').value = '';
-  document.getElementById('couleurMotSelection').value = '#ff0000';
-  
-  // Mettre à jour l'affichage
   rendreListeMots();
   draw();
 }
 
-// Afficher la liste des mots colorés
 function rendreListeMots() {
   var list = document.getElementById('listeMotsColores');
   list.innerHTML = '';
@@ -432,13 +623,43 @@ function supprimerColoration(index) {
 function effacerTexteAvance() {
   texteAvance = {
     texte: '',
-    tailleCouleur: 36,
+    taille: 36,
     visible: false,
-    colorStyles: []
+    colorStyles: [],
+    posX: 540,
+    posY: 1600,
+    alignment: 'left'
   };
   document.getElementById('texteAvance').value = '';
   document.getElementById('texteSize').value = '36';
+  document.getElementById('btnAlignGauche').classList.add('active');
+  document.getElementById('btnAlignCentre').classList.remove('active');
+  document.getElementById('btnAlignDroite').classList.remove('active');
   rendreListeMots();
+  draw();
+}
+
+function definirAlignement(align) {
+  texteAvance.alignment = align;
+  
+  document.getElementById('btnAlignGauche').classList.toggle('active', align === 'left');
+  document.getElementById('btnAlignCentre').classList.toggle('active', align === 'center');
+  document.getElementById('btnAlignDroite').classList.toggle('active', align === 'right');
+  
+  // Mettre à jour les styles des boutons
+  ['btnAlignGauche', 'btnAlignCentre', 'btnAlignDroite'].forEach(function(id) {
+    var btn = document.getElementById(id);
+    if (btn.classList.contains('active')) {
+      btn.style.background = '#1e1020';
+      btn.style.color = '#e97c1a';
+      btn.style.borderColor = '#3a2010';
+    } else {
+      btn.style.background = '#111118';
+      btn.style.color = '#444';
+      btn.style.borderColor = '#1e1e2e';
+    }
+  });
+  
   draw();
 }
 
@@ -526,13 +747,20 @@ function resetAll(){
   bgImg=null; images=[null,null,null,null]; fits=['cover','cover','cover','contain'];
   tracedRoutes=[]; texteGlobal='';
   couleurSelectionnee='#e97c1a';
+  textesOrange = [];
+  texteDragActif = null;
   
   texteAvance = {
     texte: '',
-    tailleCouleur: 36,
+    taille: 36,
     visible: false,
-    colorStyles: []
+    colorStyles: [],
+    posX: 540,
+    posY: 1600,
+    alignment: 'left'
   };
+  
+  textAvanceDragActif = false;
   
   [0,1,2,3].forEach(function(i){
     var th=document.getElementById('thumb-'+i);
@@ -551,12 +779,37 @@ function resetAll(){
   document.getElementById('texteZone').value='';
   document.getElementById('texteAvance').value='';
   document.getElementById('texteSize').value='36';
-  document.getElementById('motAColorier').value='';
   document.getElementById('couleurMotSelection').value='#ff0000';
+  
+  document.getElementById('texteOrange').value = '';
+  document.getElementById('tailleOrange').value = '32';
+  document.getElementById('couleurTexteOrange').value = '#ffffff';
+  document.getElementById('tailleValue').textContent = '32 px';
+  document.getElementById('btnBold').classList.remove('active');
+  document.getElementById('btnBold').style.background = '#111118';
+  document.getElementById('btnBold').style.color = '#444';
+  document.getElementById('btnBold').style.borderColor = '#1e1e2e';
+  
+  document.getElementById('btnAlignGauche').classList.add('active');
+  document.getElementById('btnAlignCentre').classList.remove('active');
+  document.getElementById('btnAlignDroite').classList.remove('active');
+  
+  document.getElementById('btnAlignGauche').style.background = '#1e1020';
+  document.getElementById('btnAlignGauche').style.color = '#e97c1a';
+  document.getElementById('btnAlignGauche').style.borderColor = '#3a2010';
+  
+  document.getElementById('btnAlignCentre').style.background = '#111118';
+  document.getElementById('btnAlignCentre').style.color = '#444';
+  document.getElementById('btnAlignCentre').style.borderColor = '#1e1e2e';
+  
+  document.getElementById('btnAlignDroite').style.background = '#111118';
+  document.getElementById('btnAlignDroite').style.color = '#444';
+  document.getElementById('btnAlignDroite').style.borderColor = '#1e1e2e';
   
   selectColor('#e97c1a');
   renderList();
   rendreListeMots();
+  rendreListeTextesOrange();
   draw();
 }
 
@@ -564,9 +817,122 @@ function resetAll(){
 document.getElementById('texteZone').addEventListener('input', ajouterTexte);
 document.getElementById('texteAvance').addEventListener('input', mettreAJourTexteAvance);
 document.getElementById('texteSize').addEventListener('change', mettreAJourTexteAvance);
-document.getElementById('btnAjouterColoration').addEventListener('click', ajouterColorationMot);
+document.getElementById('btnColorerSelection').addEventListener('click', colorerTexteSelectionne);
 document.getElementById('btnEffacerTexteAvance').addEventListener('click', effacerTexteAvance);
+
 document.getElementById('btnTracer').addEventListener('click', tracerRoute);
 document.getElementById('btnClear').addEventListener('click', effacerTout);
+
+document.getElementById('btnAjouterTexteOrange').addEventListener('click', ajouterTexteOrange);
+document.getElementById('btnEffacerTousTextes').addEventListener('click', effacerTousTextes);
+
+document.getElementById('btnAlignGauche').addEventListener('click', function() { definirAlignement('left'); });
+document.getElementById('btnAlignCentre').addEventListener('click', function() { definirAlignement('center'); });
+document.getElementById('btnAlignDroite').addEventListener('click', function() { definirAlignement('right'); });
+
+// ╔═════════════════════════════════════════════════════════════╗
+// ║ DRAG AND DROP 2D SUR LE CANVAS                             ║
+// ╚═════════════════════════════════════════════════════════════╝
+
+var composition = document.getElementById('composition');
+
+composition.addEventListener('mousedown', function(e) {
+  var rect = canvas.getBoundingClientRect();
+  var mouseX = e.clientX - rect.left;
+  var mouseY = e.clientY - rect.top;
+  
+  var scaleX = rect.width / NW;
+  var scaleY = rect.height / NH;
+  
+  // Vérifier si on clique sur le texte avancé d'abord
+  if (texteAvance.visible && texteAvance.texte) {
+    var textScreenX = texteAvance.posX * scaleX;
+    var textScreenY = texteAvance.posY * scaleY;
+    
+    if (Math.abs(mouseX - textScreenX) < 80 && Math.abs(mouseY - textScreenY) < 60) {
+      textAvanceDragActif = true;
+      dragOffsetAdvanceX = mouseX - textScreenX;
+      dragOffsetAdvanceY = mouseY - textScreenY;
+      draw();
+      return;
+    }
+  }
+  
+  // Vérifier si on clique sur un texte orange
+  if (textesOrange.length === 0) return;
+  
+  for (var i = 0; i < textesOrange.length; i++) {
+    var t = textesOrange[i];
+    var textScreenX = t.posX * scaleX;
+    var textScreenY = t.posY * scaleY;
+    
+    // Zone de clic (40px autour du texte)
+    if (Math.abs(mouseX - textScreenX) < 60 && Math.abs(mouseY - textScreenY) < 40) {
+      texteDragActif = i;
+      dragOffsetX = mouseX - textScreenX;
+      dragOffsetY = mouseY - textScreenY;
+      draw();
+      return;
+    }
+  }
+});
+
+document.addEventListener('mousemove', function(e) {
+  if (textAvanceDragActif) {
+    var rect = canvas.getBoundingClientRect();
+    var mouseX = e.clientX - rect.left;
+    var mouseY = e.clientY - rect.top;
+    var scaleX = rect.width / NW;
+    var scaleY = rect.height / NH;
+    
+    // Calculer la nouvelle position
+    texteAvance.posX = (mouseX - dragOffsetAdvanceX) / scaleX;
+    texteAvance.posY = (mouseY - dragOffsetAdvanceY) / scaleY;
+    
+    // Limiter aux limites de la composition
+    texteAvance.posX = Math.max(50, Math.min(NW - 50, texteAvance.posX));
+    texteAvance.posY = Math.max(50, Math.min(NH - 50, texteAvance.posY));
+    
+    draw();
+    return;
+  }
+  
+  if (texteDragActif === null) return;
+  
+  var rect = canvas.getBoundingClientRect();
+  var mouseX = e.clientX - rect.left;
+  var mouseY = e.clientY - rect.top;
+  var scaleX = rect.width / NW;
+  var scaleY = rect.height / NH;
+  
+  var t = textesOrange[texteDragActif];
+  
+  // Calculer la nouvelle position
+  var newPosX = (mouseX - dragOffsetX) / scaleX;
+  var newPosY = (mouseY - dragOffsetY) / scaleY;
+  
+  // Limiter dans la zone orange
+  var minX = ZONE_ORANGE.x + 30;
+  var maxX = ZONE_ORANGE.x + ZONE_ORANGE.w - 30;
+  var minY = ZONE_ORANGE.y + t.taille;
+  var maxY = ZONE_ORANGE.y + ZONE_ORANGE.h - t.taille;
+  
+  t.posX = Math.max(minX, Math.min(maxX, newPosX));
+  t.posY = Math.max(minY, Math.min(maxY, newPosY));
+  
+  draw();
+});
+
+document.addEventListener('mouseup', function() {
+  if (textAvanceDragActif) {
+    textAvanceDragActif = false;
+    draw();
+  }
+  
+  if (texteDragActif !== null) {
+    texteDragActif = null;
+    draw();
+  }
+});
 
 draw();

@@ -43,6 +43,11 @@ h1{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#555;font-
 #bgCanvas{
   position:absolute;top:0;left:0;
   width:540px;height:960px;
+  cursor: grab;
+}
+
+#bgCanvas:active {
+  cursor: grabbing;
 }
 /* SVG overlay routes : viewBox 1080×1920, affiché en 540×960 → scale automatique */
 #routesSVG{
@@ -69,13 +74,10 @@ input[type=file]{display:none}
 .rtag button{background:none;border:none;color:#555;cursor:pointer;font-size:12px;padding:0 2px}
 .rtag button:hover{color:#e97c1a}
 
-/* NOUVEAU : Styles des boutons de couleur */
+/* Styles des boutons de couleur */
 .color-btn{padding:8px;border-radius:7px;border:2px solid transparent;color:#fff;font-size:11px;font-weight:700;cursor:pointer;transition:border-color .2s,transform .1s}
 .color-btn:hover{transform:scale(1.05)}
 .color-btn.active{border-color:#fff;box-shadow:0 0 8px rgba(255,255,255,0.3)}
-
-
-
 
 /* Style pour le texte avancé */
 #texteAvance {
@@ -89,4 +91,53 @@ input[type=file]{display:none}
   text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
   pointer-events: none;
   user-select: none;
+}
+
+/* Styles pour les textes orange */
+.texte-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #1a1020;
+  border: 1px solid #3a2010;
+  border-radius: 5px;
+  padding: 5px 7px;
+  font-size: 10px;
+  color: #e97c1a;
+  margin-bottom: 4px;
+}
+
+.texte-item-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.texte-item-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 9px;
+}
+
+.texte-item-info {
+  font-size: 8px;
+  color: #666;
+  display: flex;
+  gap: 4px;
+}
+
+.texte-item button {
+  background: none;
+  border: none;
+  color: #555;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0 4px;
+}
+
+.texte-item button:hover {
+  color: #e97c1a;
 }
