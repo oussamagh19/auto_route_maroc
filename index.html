@@ -82,6 +82,15 @@
       <label style="font-size:10px;color:#666;display:block;margin-bottom:5px;">📝 Texte:</label>
       <input type="text" id="texteOrange" class="rsel" placeholder="Entrez votre texte..." style="width:100%;padding:8px;margin-bottom:10px;">
 
+      <!-- Police -->
+      <label style="font-size:10px;color:#666;display:block;margin-bottom:5px;">🔤 Police:</label>
+      <select id="policeOrange" class="rsel">
+        <option value="Segoe UI">Segoe UI (défaut)</option>
+        <option value="Poppins-Bold">Poppins Bold</option>
+        <option value="Poppins-Black">Poppins Black</option>
+        <option value="OpenSans-Bold">Open Sans Bold</option>
+      </select>
+
       <!-- Taille du texte -->
       <label style="font-size:10px;color:#666;display:block;margin-bottom:5px;">📏 Taille (px):</label>
       <div style="display:flex; gap:5px; margin-bottom:10px;">
@@ -126,12 +135,31 @@
     <hr class="divider">
 
     <div class="stitle">✏️ Texte Simple (Bas) - Dynamique</div>
+    
+    <!-- Police pour texte simple -->
+    <label style="font-size:10px;color:#666;display:block;margin-bottom:5px;">🔤 Police:</label>
+    <select id="policeTexteSimple" class="rsel">
+      <option value="Segoe UI">Segoe UI (défaut)</option>
+      <option value="Poppins-Bold">Poppins Bold</option>
+      <option value="Poppins-Black">Poppins Black</option>
+      <option value="OpenSans-Bold">Open Sans Bold</option>
+    </select>
+
     <textarea id="texteZone" class="textarea" placeholder="Texte en bas de l'image (blanc)"></textarea>
 
     <hr class="divider">
 
     <div class="stitle">🎨 Texte Avancé - DRAG & DROP LIBRE ⚡</div>
     <p style="font-size:9px;color:#ff6600;margin-bottom:8px;">✨ Tapez votre texte et déplacez-le librement sur le canvas!</p>
+
+    <!-- Police pour texte avancé -->
+    <label style="font-size:10px;color:#666;display:block;margin-bottom:5px;">🔤 Police:</label>
+    <select id="policeTexteAvance" class="rsel">
+      <option value="Segoe UI">Segoe UI (défaut)</option>
+      <option value="Poppins-Bold">Poppins Bold</option>
+      <option value="Poppins-Black">Poppins Black</option>
+      <option value="OpenSans-Bold">Open Sans Bold</option>
+    </select>
 
     <!-- Textarea pour le texte -->
     <div style="margin-bottom:8px;">

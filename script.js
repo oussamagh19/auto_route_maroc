@@ -28,68 +28,69 @@ var VILLES = [
 
 var ROUTES = {
   "agadir-marrakech":
-    "606.854,1025.43 593.194,1036.244 584.087,1042.505 577.826,1043.643 574.411,1048.766 "+
-    "571.565,1053.888 570.427,1052.75 564.735,1060.718 564.166,1060.718 561.889,1066.41 "+
-    "561.32,1072.101 556.198,1081.777 549.937,1089.177 547.091,1092.022 547.66,1095.437 543.676,1103.406",
-
+    "606.258,1025.57 599.19,1031.26 595.502,1035.87 587.051,1040.94 578.601,1043.55 "+
+    "574.452,1048 573.684,1051.08 563.543,1060.45 562.621,1062.91 562.467,1067.82 "+
+    "559.241,1075.51 557.243,1080.58 556.322,1082.88 548.793,1089.95 547.717,1091.18 "+
+    "547.256,1096.1 546.181,1099.63 542.647,1103.62",
+ 
   "eljadida-safi":
-    "586.255,947.69 588.248,953.382 587.394,959.358 584.548,963.627 584.263,965.335 "+
-    "578.572,965.619 571.742,972.734 566.05,980.987 563.204,987.532 561.212,991.801 560.643,994.647 560.074,995.501",
-
+    "587.185,949.131 588.338,954.432 588.338,954.97 585.572,962.729 585.572,962.806 "+
+    "584.804,964.112 582.192,965.264 579.733,965.264 571.667,972.101 562.985,987.236 "+
+    "561.218,990.77 560.988,993.766 560.143,994.996",
+ 
   "oujda-taza":
-    "892.586,854.264 886.041,855.402 878.072,855.971 871.242,856.825 868.112,857.679 "+
-    "862.136,857.679 858.151,857.679 858.151,858.248 849.045,864.509 849.045,865.078 "+
-    "841.645,868.209 841.645,868.493 835.669,870.77 832.823,872.477 831.4,873.9 "+
-    "827.985,873.9 821.155,874.185 814.325,874.185",
-
+    "817.642,873.923 829.703,874.461 832.546,873.002 847.143,865.55 858.82,857.483 "+
+    "868.5,856.868 877.872,856.1 885.017,854.948 893.16,853.642",
+ 
   "taza-fes":
-    "813.091,874.406 803.984,877.536 800.285,878.959 793.17,877.394 784.633,882.232 "+
-    "778.087,886.927 777.66,886.927 773.534,890.2 769.123,891.196 763.431,891.908 "+
-    "763.147,891.765 759.874,892.477 759.732,892.477 757.597,894.042 757.028,894.042 755.178,893.331 753.898,892.904",
-
+    "754.451,893.326 756.987,894.017 759.138,893.172 760.905,891.636 769.432,891.712 "+
+    "772.198,891.098 777.652,888.409 789.867,878.806 792.172,877.807 796.782,878.191 "+
+    "800.776,878.499 812.377,875.349",
+ 
   "fes-khemisset":
-    "751.096,891.726 733.025,900.975 733.025,901.117 726.337,902.54 719.649,897.702 712.25,901.829",
-
+    "713.605,901.648 719.674,897.576 724.283,901.187 728.586,902.417 733.886,900.88 "+
+    "734.578,900.112 741.645,897.653 750.327,892.967",
+ 
   "khemisset-rabat":
-    "710.325,903.745 699.368,903.603 699.226,903.603 691.969,900.9 677.882,890.512",
-
+    "679.436,891.551 691.728,900.847 698.335,902.768 708.553,903.843",
+ 
   "fnideq-tetouan":
-    "736.787,796.97 736.787,801.524 736.787,803.658 737.641,805.935 737.641,810.915",
-
+    "736.374,798.241 736.066,801.467 736.796,802.927 737.142,808.958 737.142,810.417",
+ 
   "tanger-assilah":
-    "730.669,791.213 726.827,795.34 726.827,798.47 718.859,801.458 714.59,802.312 "+
-    "712.029,802.312 710.321,805.158 709.752,809.285 709.183,814.407",
-
+    "729.924,791.99 727.581,794.564 726.62,798.06 722.434,800.71 716.134,802.131 "+
+    "711.025,802.208 710.295,803.898 709.335,807.855 708.797,814.731",
+ 
   "assilah-kenitra":
-    "708.914,820.315 707.064,823.73 707.064,827.43 707.064,827.857 705.926,831.841 "+
-    "703.507,836.11 702.226,840.521 701.372,842.797 700.803,844.932 700.519,847.351 "+
-    "700.519,849.912 700.519,851.05 696.392,854.323 696.25,854.465 694.827,859.303 691.696,866.418",
-
+    "708.252,820.656 707.176,823.037 707.023,828.492 704.948,833.562 705.025,833.562 "+
+    "701.184,842.397 700.953,843.319 700.569,849.618 697.266,853.46 691.811,865.982",
+ 
   "kenitra-rabat":
-    "689.77,869.765 686.924,875.457 687.493,879.726 687.493,882.856 682.655,885.702 678.956,887.979 678.387,888.263",
-
+    "688.72,870.769 687.798,872.459 687.529,882.255 679.117,887.632",
+ 
   "rabat-casablanca":
-    "677.264,891.506 671.288,905.451 671.003,905.735 669.581,907.158 669.296,907.158 "+
-    "660.901,907.585 656.205,909.15 649.09,911.996 645.675,914.984 641.691,919.68 "+
-    "639.13,922.526 635.715,924.233 631.304,927.079",
-
+    "676.324,892.301 671.407,905.515 671.253,905.745 669.333,907.128 659.73,908.127 "+
+    "650.664,911.046 644.595,916.04 639.986,922.186 631.305,927.41",
+ 
   "casablanca-eljadida":
-    "626.621,929.682 609.617,938.22 609.617,938.362 600.866,940.07 600.795,940.07 589.767,944.765",
-
+    "626.166,929.499 608.88,938.026 600.506,940.101 589.367,945.017",
+ 
   "casablanca-berrechid":
-    "629.856,930.639 629.5,935.192 629.5,935.335 630.212,937.042 632.061,940.315",
-
+    "629.36,930.775 629.437,936.768 631.664,940.378 631.895,940.762",
+ 
   "berrechid-khouribga":
-    "635.997,944.419 649.942,951.676 650.155,951.676 656.132,958.933 660.329,960.783 666.519,961.281 666.875,961.352",
-
+    "636.072,944.391 650.592,952.304 656.892,960.064 666.572,961.6",
+ 
   "khouribga-benimellal":
     "671.397,961.383 676.093,961.668 676.235,961.668 676.946,961.668 681.357,965.225 "+
     "681.5,967.075 681.5,969.067 681.5,969.636 681.642,970.917 681.784,971.059 "+
     "683.634,972.482 690.322,985.715 691.033,992.972",
-
+ 
   "berrechid-marrakech":
-    "632.704,945.662 631.281,951.923 631.281,958.753 624.735,967.86 623.597,972.413 "+
-    "622.743,975.828 615.344,983.797 612.783,1000.59 611.075,1013.96 609.937,1020.79 609.652,1022.79 609.937,1022.79"
+    "632.703,945.193 631.013,951.186 631.167,954.873 631.167,956.103 630.706,958.1 "+
+    "629.169,960.866 626.865,963.478 625.636,965.782 624.406,968.395 622.563,971.314 "+
+    "622.716,975.001 620.565,978.689 614.88,984.989 612.729,999.278 611.807,1008.65 "+
+    "609.81,1021.56"
 };
 
 var NW=1080, NH=1920;
@@ -118,6 +119,8 @@ var texteDragActif = null; // Index du texte en train d'être déplacé
 var dragOffsetX = 0, dragOffsetY = 0;
 var ZONE_ORANGE = ZONES[1];
 
+var textOrangeEditionActif = null; // Index du texte en édition
+
 var texteAvance = {
   texte: '',
   taille: 36,
@@ -125,7 +128,8 @@ var texteAvance = {
   colorStyles: [],
   posX: 540,  // Position personnalisée X (centre par défaut)
   posY: 1600,  // Position personnalisée Y (bas par défaut)
-  alignment: 'left'  // left, center, right
+  alignment: 'left',  // left, center, right
+  police: 'Segoe UI'  // Police par défaut
 };
 
 var textAvanceDragActif = false;
@@ -156,20 +160,38 @@ function drawTextesOrange(c) {
 
   textesOrange.forEach(function(texte, index) {
     var fontWeight = texte.bold ? 'bold ' : '';
+    var police = texte.police || 'Segoe UI';
+    
+    // Détecter si le texte est en arabe
+    var isArabic = /[\u0600-\u06FF]/.test(texte.texte);
+    
+    // Utiliser une meilleure police pour l'arabe
+    if (isArabic) {
+      police = 'Arial, "Traditional Arabic", "Simplified Arabic", "Segoe UI", sans-serif';
+    }
+    
     c.save();
     
-    c.font = fontWeight + texte.taille + 'px "Segoe UI", Arial, sans-serif';
+    c.font = fontWeight + texte.taille + 'px ' + police;
     c.fillStyle = texte.couleur;
-    c.textAlign = 'center';
+    c.direction = isArabic ? 'rtl' : 'ltr';
+    
+    // Inverser l'alignement pour l'arabe
+    if (isArabic) {
+      c.textAlign = 'right';
+    } else {
+      c.textAlign = 'center';
+    }
+    
     c.textBaseline = 'middle';
     
     c.shadowColor = 'rgba(0, 0, 0, 0.5)';
     c.shadowBlur = 6;
-    c.shadowOffsetX = 1;
+    c.shadowOffsetX = isArabic ? -1 : 1;
     c.shadowOffsetY = 1;
     
     var maxWidth = ZONE_ORANGE.w - 40;
-    var lineHeight = texte.taille * 1.4;
+    var lineHeight = texte.taille * 1.5; // Augmenter l'espacement pour l'arabe
     
     // Découper en lignes si nécessaire
     var words = texte.texte.split(' ');
@@ -191,10 +213,22 @@ function drawTextesOrange(c) {
     if (currentLine) lines.push(currentLine);
     
     // Afficher chaque ligne
+    // Pour l'arabe, inverser l'ordre des lignes
+    if (isArabic) lines = lines.reverse();
+    
     var startY = texte.posY - (lines.length - 1) * lineHeight / 2;
+    
     lines.forEach(function(line, lineIndex) {
       var lineY = startY + lineIndex * lineHeight;
-      c.fillText(line, texte.posX, lineY);
+      var displayText = isArabic ? line : line;
+      
+      // Ajuster la position X pour l'arabe
+      var posX = texte.posX;
+      if (isArabic) {
+        posX = ZONE_ORANGE.x + ZONE_ORANGE.w - 30; // Aligner à droite
+      }
+      
+      c.fillText(displayText, posX, lineY);
     });
     
     // Afficher le rectangle de sélection si en édition
@@ -210,12 +244,38 @@ function drawTextesOrange(c) {
   });
 }
 
-function drawAdvancedTextWithColors(c, texte, posX, posY, taille, colorStyles, alignment) {
+// Détecter si le texte contient de l'arabe
+function isArabicText(text) {
+  var arabicRegex = /[\u0600-\u06FF]/g;
+  return arabicRegex.test(text);
+}
+
+function drawAdvancedTextWithColors(c, texte, posX, posY, taille, colorStyles, alignment, police) {
   if (!texte) return;
   
+  police = police || 'Segoe UI';
+  var isArabic = isArabicText(texte);
+  
+  // Choisir la meilleure police pour l'arabe
+  if (isArabic) {
+    police = 'Arial, "Segoe UI", "Traditional Arabic", "Simplified Arabic", sans-serif';
+  }
+  
   c.save();
-  c.font = 'bold ' + taille + 'px "Segoe UI", Arial, sans-serif';
-  c.textAlign = alignment || 'left';
+  c.font = 'bold ' + taille + 'px ' + police;
+  
+  // Appliquer la direction RTL pour l'arabe
+  if (isArabic) {
+    c.direction = 'rtl';
+    // Inverser l'alignement pour l'arabe
+    if (alignment === 'left') c.textAlign = 'right';
+    else if (alignment === 'right') c.textAlign = 'left';
+    else c.textAlign = alignment || 'center';
+  } else {
+    c.direction = 'ltr';
+    c.textAlign = alignment || 'left';
+  }
+  
   c.textBaseline = 'top';
   
   c.shadowColor = 'rgba(0, 0, 0, 0.8)';
@@ -223,9 +283,8 @@ function drawAdvancedTextWithColors(c, texte, posX, posY, taille, colorStyles, a
   c.shadowOffsetX = 2;
   c.shadowOffsetY = 2;
   
-  var lineHeight = taille * 1.3;
-  var padding = 15;
-  var maxWidth = 400; // Largeur max du texte
+  var lineHeight = taille * 1.5;
+  var maxWidth = 400;
   var currentY = posY;
   
   var words = texte.split(' ');
@@ -235,8 +294,8 @@ function drawAdvancedTextWithColors(c, texte, posX, posY, taille, colorStyles, a
   var drawX = posX;
   if (alignment === 'center') {
     drawX = posX;
-  } else if (alignment === 'right') {
-    drawX = posX;
+  } else if (isArabic && alignment === 'left') {
+    drawX = posX; // RTL: gauche en arabe = droite en affichage
   }
   
   words.forEach(function(word) {
@@ -244,7 +303,7 @@ function drawAdvancedTextWithColors(c, texte, posX, posY, taille, colorStyles, a
     var metrics = c.measureText(testLine);
     
     if (metrics.width > maxWidth && lineWords.length > 0) {
-      drawLineWithColors(c, lineWords, drawX, currentY, taille, colorStyles, alignment);
+      drawLineWithColors(c, lineWords, drawX, currentY, taille, colorStyles, alignment, isArabic);
       currentY += lineHeight;
       lineWords = [word];
     } else {
@@ -253,7 +312,7 @@ function drawAdvancedTextWithColors(c, texte, posX, posY, taille, colorStyles, a
   });
   
   if (lineWords.length > 0) {
-    drawLineWithColors(c, lineWords, drawX, currentY, taille, colorStyles, alignment);
+    drawLineWithColors(c, lineWords, drawX, currentY, taille, colorStyles, alignment, isArabic);
   }
   
   // Afficher le rectangle de sélection si en drag
@@ -277,7 +336,7 @@ function drawAdvancedTextWithColors(c, texte, posX, posY, taille, colorStyles, a
   c.restore();
 }
 
-function drawLineWithColors(c, words, x, y, taille, colorStyles, alignment) {
+function drawLineWithColors(c, words, x, y, taille, colorStyles, alignment, isArabic) {
   var currentX = x;
   var line = words.join(' ');
   var lineWidth = c.measureText(line).width;
@@ -287,9 +346,14 @@ function drawLineWithColors(c, words, x, y, taille, colorStyles, alignment) {
     currentX = x - lineWidth / 2;
   } else if (alignment === 'right') {
     currentX = x - lineWidth;
+  } else if (isArabic && alignment === 'left') {
+    currentX = x - lineWidth; // RTL: aligner à droite visuellement
   }
   
-  words.forEach(function(word) {
+  // Pour l'arabe, inverser l'ordre des mots pour l'affichage RTL
+  var displayWords = isArabic ? words.reverse() : words;
+  
+  displayWords.forEach(function(word) {
     var wordColor = '#ffffff';
     
     colorStyles.forEach(function(style) {
@@ -338,25 +402,42 @@ function drawCanvas() {
   // Afficher tous les textes orange
   drawTextesOrange(ctx);
 
-  // Afficher le texte avancé avec position libre
+  // Afficher le texte avancé avec position libre et police
   if (texteAvance.visible && texteAvance.texte) {
-    drawAdvancedTextWithColors(ctx, texteAvance.texte, texteAvance.posX, texteAvance.posY, texteAvance.taille, texteAvance.colorStyles, texteAvance.alignment);
+    drawAdvancedTextWithColors(ctx, texteAvance.texte, texteAvance.posX, texteAvance.posY, texteAvance.taille, texteAvance.colorStyles, texteAvance.alignment, texteAvance.police);
   }
 
   if (texteGlobal) {
     ctx.save();
     ctx.fillStyle='#ffffff';
-    ctx.font='bold 36px "Segoe UI",Arial,sans-serif';
-    ctx.textAlign='center';
+    
+    // Détecter si le texte est en arabe
+    var isArabicText = /[\u0600-\u06FF]/.test(texteGlobal);
+    var police = 'Arial, "Segoe UI", "Traditional Arabic", sans-serif';
+    
+    ctx.font='bold 36px ' + police;
+    ctx.textAlign = isArabicText ? 'right' : 'center';
+    ctx.direction = isArabicText ? 'rtl' : 'ltr';
     ctx.shadowColor='rgba(0,0,0,0.8)';
     ctx.shadowBlur=8;
-    var x=NW/2, y=NH-130;
-    var mots=texteGlobal.split(' '), ligne='';
+    ctx.shadowOffsetX = isArabicText ? -2 : 2;
+    ctx.shadowOffsetY=2;
+    
+    var x = isArabicText ? NW - 50 : NW/2; // Aligner à droite pour l'arabe
+    var y = NH - 130;
+    var mots = texteGlobal.split(' '), ligne='';
+    
     mots.forEach(function(m){
-      var t=ligne?ligne+' '+m:m;
-      if(t.length>28){ctx.fillText(ligne,x,y);y+=46;ligne=m;}else{ligne=t;}
+      var t = ligne ? ligne + ' ' + m : m;
+      if(t.length > 28){
+        ctx.fillText(ligne, x, y);
+        y += 46;
+        ligne = m;
+      } else {
+        ligne = t;
+      }
     });
-    if(ligne)ctx.fillText(ligne,x,y);
+    if(ligne) ctx.fillText(ligne, x, y);
     ctx.restore();
   }
 }
@@ -453,7 +534,7 @@ function ajouterTexte() {
 }
 
 // ╔═════════════════════════════════════════════════════════════╗
-// ║ GESTION DES TEXTES ORANGE (MULTIPLES)                      ║
+// ║ GESTION DES TEXTES ORANGE (MULTIPLES) - ÉDITION DYNAMIQUE  ║
 // ╚═════════════════════════════════════════════════════════════╝
 
 function ajouterTexteOrange() {
@@ -464,23 +545,27 @@ function ajouterTexteOrange() {
     return;
   }
   
-  // Ajouter le texte au tableau
-  var nouveauTexte = {
-    id: Date.now(),
-    texte: texte,
-    taille: parseInt(document.getElementById('tailleOrange').value),
-    bold: document.getElementById('btnBold').classList.contains('active'),
-    couleur: document.getElementById('couleurTexteOrange').value,
-    posX: ZONE_ORANGE.x + ZONE_ORANGE.w / 2, // Centre par défaut
-    posY: ZONE_ORANGE.y + ZONE_ORANGE.h / 2  // Centre par défaut
-  };
+  if (textOrangeEditionActif !== null) {
+    // Mode édition : mettre à jour le texte existant
+    mettreAJourTexteOrangeEdition();
+    deselectionnerTexteOrange();
+  } else {
+    // Mode ajout : créer un nouveau texte
+    var nouveauTexte = {
+      id: Date.now(),
+      texte: texte,
+      taille: parseInt(document.getElementById('tailleOrange').value),
+      bold: document.getElementById('btnBold').classList.contains('active'),
+      couleur: document.getElementById('couleurTexteOrange').value,
+      police: document.getElementById('policeOrange').value,
+      posX: ZONE_ORANGE.x + ZONE_ORANGE.w / 2,
+      posY: ZONE_ORANGE.y + ZONE_ORANGE.h / 2
+    };
+    
+    textesOrange.push(nouveauTexte);
+    document.getElementById('texteOrange').value = '';
+  }
   
-  textesOrange.push(nouveauTexte);
-  
-  // Réinitialiser l'input
-  document.getElementById('texteOrange').value = '';
-  
-  // Mettre à jour l'affichage
   rendreListeTextesOrange();
   draw();
 }
@@ -493,6 +578,11 @@ function rendreListeTextesOrange() {
     var div = document.createElement('div');
     div.className = 'texte-item';
     
+    if (textOrangeEditionActif === index) {
+      div.style.background = '#1e1020';
+      div.style.borderColor = '#e97c1a';
+    }
+    
     var isBold = t.bold ? 'B' : '';
     var content = document.createElement('div');
     content.className = 'texte-item-content';
@@ -504,9 +594,19 @@ function rendreListeTextesOrange() {
         (isBold ? '<span>B</span>' : '') +
       '</div>';
     
+    // Rendre cliquable pour éditer
+    content.style.cursor = 'pointer';
+    content.onclick = function(e) {
+      e.stopPropagation();
+      selectionnerTexteOrange(index);
+    };
+    
     var btnDelete = document.createElement('button');
     btnDelete.textContent = '✕';
-    btnDelete.onclick = function() { supprimerTexteOrange(index); };
+    btnDelete.onclick = function(e) {
+      e.stopPropagation();
+      supprimerTexteOrange(index);
+    };
     
     div.appendChild(content);
     div.appendChild(btnDelete);
@@ -514,22 +614,88 @@ function rendreListeTextesOrange() {
   });
 }
 
+function selectionnerTexteOrange(index) {
+  textOrangeEditionActif = index;
+  var t = textesOrange[index];
+  
+  // Mettre à jour les contrôles avec les valeurs du texte sélectionné
+  document.getElementById('texteOrange').value = t.texte;
+  document.getElementById('tailleOrange').value = t.taille;
+  document.getElementById('tailleValue').textContent = t.taille + ' px';
+  document.getElementById('couleurTexteOrange').value = t.couleur;
+  document.getElementById('policeOrange').value = t.police;
+  
+  if (t.bold) {
+    document.getElementById('btnBold').classList.add('active');
+    document.getElementById('btnBold').style.background = '#1e1020';
+    document.getElementById('btnBold').style.color = '#e97c1a';
+    document.getElementById('btnBold').style.borderColor = '#3a2010';
+  } else {
+    document.getElementById('btnBold').classList.remove('active');
+    document.getElementById('btnBold').style.background = '#111118';
+    document.getElementById('btnBold').style.color = '#444';
+  }
+  
+  // Mettre à jour le bouton
+  document.getElementById('btnAjouterTexteOrange').textContent = '✎ Mettre à jour';
+  
+  rendreListeTextesOrange();
+  draw();
+}
+
+function mettreAJourTexteOrangeEdition() {
+  if (textOrangeEditionActif === null) return;
+  
+  var t = textesOrange[textOrangeEditionActif];
+  t.texte = document.getElementById('texteOrange').value;
+  t.taille = parseInt(document.getElementById('tailleOrange').value);
+  t.couleur = document.getElementById('couleurTexteOrange').value;
+  t.police = document.getElementById('policeOrange').value;
+  t.bold = document.getElementById('btnBold').classList.contains('active');
+  
+  rendreListeTextesOrange();
+  draw();
+}
+
+function deselectionnerTexteOrange() {
+  textOrangeEditionActif = null;
+  document.getElementById('texteOrange').value = '';
+  document.getElementById('btnAjouterTexteOrange').textContent = '➕ Ajouter texte';
+  document.getElementById('tailleValue').textContent = '32 px';
+  document.getElementById('tailleOrange').value = '32';
+  document.getElementById('btnBold').classList.remove('active');
+  document.getElementById('btnBold').style.background = '#111118';
+  document.getElementById('btnBold').style.color = '#444';
+  rendreListeTextesOrange();
+  draw();
+}
+
 function supprimerTexteOrange(index) {
   textesOrange.splice(index, 1);
-  rendreListeTextesOrange();
+  if (textOrangeEditionActif === index) {
+    deselectionnerTexteOrange();
+  } else {
+    rendreListeTextesOrange();
+  }
   draw();
 }
 
 function effacerTousTextes() {
   textesOrange = [];
+  deselectionnerTexteOrange();
   rendreListeTextesOrange();
   draw();
 }
 
-// Gestion de la taille avec slider
+// Gestion de la taille avec slider - MÀJ DYNAMIQUE
 document.getElementById('tailleOrange').addEventListener('input', function(e) {
   var taille = parseInt(e.target.value);
   document.getElementById('tailleValue').textContent = taille + ' px';
+  
+  // Mettre à jour dynamiquement si on édite
+  if (textOrangeEditionActif !== null) {
+    mettreAJourTexteOrangeEdition();
+  }
 });
 
 // Toggle Bold
@@ -545,15 +711,41 @@ document.getElementById('btnBold').addEventListener('click', function() {
     this.style.color = '#444';
     this.style.borderColor = '#1e1e2e';
   }
+  
+  // Mettre à jour dynamiquement si on édite
+  if (textOrangeEditionActif !== null) {
+    mettreAJourTexteOrangeEdition();
+  }
+});
+
+// Écouteurs pour les changes de couleur et police
+document.getElementById('couleurTexteOrange').addEventListener('change', function() {
+  if (textOrangeEditionActif !== null) {
+    mettreAJourTexteOrangeEdition();
+  }
+});
+
+document.getElementById('policeOrange').addEventListener('change', function() {
+  if (textOrangeEditionActif !== null) {
+    mettreAJourTexteOrangeEdition();
+  }
+});
+
+document.getElementById('texteOrange').addEventListener('input', function() {
+  if (textOrangeEditionActif !== null) {
+    mettreAJourTexteOrangeEdition();
+  }
 });
 
 // Mettre à jour le texte avancé
 function mettreAJourTexteAvance() {
   var texte = document.getElementById('texteAvance').value;
   var taille = parseInt(document.getElementById('texteSize').value);
+  var police = document.getElementById('policeTexteAvance').value;
   
   texteAvance.texte = texte;
   texteAvance.taille = taille;
+  texteAvance.police = police;
   texteAvance.visible = texte.trim() !== '';
   
   draw();
@@ -628,10 +820,12 @@ function effacerTexteAvance() {
     colorStyles: [],
     posX: 540,
     posY: 1600,
-    alignment: 'left'
+    alignment: 'left',
+    police: 'Segoe UI'
   };
   document.getElementById('texteAvance').value = '';
   document.getElementById('texteSize').value = '36';
+  document.getElementById('policeTexteAvance').value = 'Segoe UI';
   document.getElementById('btnAlignGauche').classList.add('active');
   document.getElementById('btnAlignCentre').classList.remove('active');
   document.getElementById('btnAlignDroite').classList.remove('active');
@@ -749,6 +943,7 @@ function resetAll(){
   couleurSelectionnee='#e97c1a';
   textesOrange = [];
   texteDragActif = null;
+  textOrangeEditionActif = null;
   
   texteAvance = {
     texte: '',
@@ -757,7 +952,8 @@ function resetAll(){
     colorStyles: [],
     posX: 540,
     posY: 1600,
-    alignment: 'left'
+    alignment: 'left',
+    police: 'Segoe UI'
   };
   
   textAvanceDragActif = false;
@@ -779,11 +975,13 @@ function resetAll(){
   document.getElementById('texteZone').value='';
   document.getElementById('texteAvance').value='';
   document.getElementById('texteSize').value='36';
+  document.getElementById('policeTexteAvance').value='Segoe UI';
   document.getElementById('couleurMotSelection').value='#ff0000';
   
   document.getElementById('texteOrange').value = '';
   document.getElementById('tailleOrange').value = '32';
   document.getElementById('couleurTexteOrange').value = '#ffffff';
+  document.getElementById('policeOrange').value = 'Segoe UI';
   document.getElementById('tailleValue').textContent = '32 px';
   document.getElementById('btnBold').classList.remove('active');
   document.getElementById('btnBold').style.background = '#111118';
@@ -806,6 +1004,8 @@ function resetAll(){
   document.getElementById('btnAlignDroite').style.color = '#444';
   document.getElementById('btnAlignDroite').style.borderColor = '#1e1e2e';
   
+  document.getElementById('btnAjouterTexteOrange').textContent = '➕ Ajouter texte';
+  
   selectColor('#e97c1a');
   renderList();
   rendreListeMots();
@@ -817,6 +1017,7 @@ function resetAll(){
 document.getElementById('texteZone').addEventListener('input', ajouterTexte);
 document.getElementById('texteAvance').addEventListener('input', mettreAJourTexteAvance);
 document.getElementById('texteSize').addEventListener('change', mettreAJourTexteAvance);
+document.getElementById('policeTexteAvance').addEventListener('change', mettreAJourTexteAvance);
 document.getElementById('btnColorerSelection').addEventListener('click', colorerTexteSelectionne);
 document.getElementById('btnEffacerTexteAvance').addEventListener('click', effacerTexteAvance);
 
