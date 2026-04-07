@@ -2,8 +2,16 @@ var ZONES = [
   {label:'Avis Important', x:261.30, y:214.06, w:547.54, h:107.00, color:'#e97c1a'},
   {label:'Forme orange',   x:237.71, y:354.39, w:606.74, h:364.27, color:'#4fa3ff'},
   {label:'Vecteezy',       x:584.10, y:522.55, w:234.50, h:126.76, color:'#a8e060'},
-  {label:'Map', x:0, y:0, w:1080, h:1920, color:'#e060c0'}
+  {label:'Carte / Map', x:0, y:0, w:1080, h:1920, color:'#e060c0'}
 ];
+
+// Zone Vecteezy draggable séparée
+var vecteezyZone = {
+  x: 584.10,
+  y: 522.55,
+  w: 234.50,
+  h: 126.76
+};
 
 var VILLES = [
   {nom:"Tanger",     id:"tanger"},
@@ -110,36 +118,47 @@ var tracedRoutes = [];
 var texteGlobal  = '';
 var couleurSelectionnee = '#e97c1a';
 
+// ── Drag state pour Vecteezy ──
+var vecteezyDragActif = false;
+var dragVecteezyOffsetX = 0, dragVecteezyOffsetY = 0;
+
 // ╔═════════════════════════════════════════════════════════════╗
-// ║ SYSTÈME DE TEXTES MULTIPLES DANS ZONE ORANGE              ║
+// ║ DÉTECTION AMÉLIORÉE DU TEXTE ARABE ET RTL                 ║
 // ╚═════════════════════════════════════════════════════════════╝
 
-var textesOrange = []; // Tableau de textes avec positions
-var texteDragActif = null; // Index du texte en train d'être déplacé
+function isArabicText(text) {
+  var arabicRegex = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/g;
+  return arabicRegex.test(text);
+}
+
+function getOptimalFontForText(isArabic, baseFontFamily) {
+  if (isArabic) {
+    return '"GE-SS-Two-Bold"';
+  }
+  return baseFontFamily || 'Segoe UI';
+}
+
+var textesOrange = [];
+var texteDragActif = null;
 var dragOffsetX = 0, dragOffsetY = 0;
 var ZONE_ORANGE = ZONES[1];
 
-var textOrangeEditionActif = null; // Index du texte en édition
+var textOrangeEditionActif = null;
+var _blockerMiseAJour = false;
 
 var texteAvance = {
   texte: '',
   taille: 36,
   visible: false,
   colorStyles: [],
-  posX: 540,  // Position personnalisée X (centre par défaut)
-  posY: 1600,  // Position personnalisée Y (bas par défaut)
-  alignment: 'left',  // left, center, right
-  police: 'Segoe UI'  // Police par défaut
+  posX: 540,
+  posY: 1600,
+  alignment: 'left',
+  police: 'Segoe UI'
 };
 
 var textAvanceDragActif = false;
 var dragOffsetAdvanceX = 0, dragOffsetAdvanceY = 0;
-
-var textZones = {
-  gauche: {x: 31.98, y: 794.67, w: 465.86, h: 250.75},
-  centre: {x: 307.12, y: 794.67, w: 465.86, h: 250.75},
-  droite: {x: 582.26, y: 794.67, w: 465.86, h: 250.75}
-};
 
 function drawFit(c2, img, dx, dy, dw, dh, mode) {
   var iw=img.naturalWidth, ih=img.naturalHeight;
@@ -154,46 +173,49 @@ function drawFit(c2, img, dx, dy, dw, dh, mode) {
   }
 }
 
-// Dessiner tous les textes de la zone orange
+// ╔═════════════════════════════════════════════════════════════╗
+// ║ MISE À JOUR DES INPUTS VECTEEZY DEPUIS LA ZONE            ║
+// ╚═════════════════════════════════════════════════════════════╝
+
+function syncVecteezyInputs() {
+  var wInput = document.getElementById('vecteezyW');
+  var hInput = document.getElementById('vecteezyH');
+  var wVal   = document.getElementById('vecteezyWVal');
+  var hVal   = document.getElementById('vecteezyHVal');
+  if (wInput) { wInput.value = Math.round(vecteezyZone.w); wVal.textContent = Math.round(vecteezyZone.w) + 'px'; }
+  if (hInput) { hInput.value = Math.round(vecteezyZone.h); hVal.textContent = Math.round(vecteezyZone.h) + 'px'; }
+}
+
 function drawTextesOrange(c) {
   if (textesOrange.length === 0) return;
 
   textesOrange.forEach(function(texte, index) {
     var fontWeight = texte.bold ? 'bold ' : '';
-    var police = texte.police || 'Segoe UI';
-    
-    // Détecter si le texte est en arabe
-    var isArabic = /[\u0600-\u06FF]/.test(texte.texte);
-    
-    // Utiliser une meilleure police pour l'arabe
-    if (isArabic) {
-      police = 'Arial, "Traditional Arabic", "Simplified Arabic", "Segoe UI", sans-serif';
+    var arabic = isArabicText(texte.texte);
+
+    var police;
+    if (arabic) {
+      police = '"GE-SS-Two-Bold"';
+      texte.police = 'GE-SS-Two-Bold';
+    } else if (texte.police === 'GE-SS-Two-Bold') {
+      police = '"GE-SS-Two-Bold"';
+    } else {
+      police = texte.police || 'Segoe UI';
     }
     
     c.save();
-    
     c.font = fontWeight + texte.taille + 'px ' + police;
     c.fillStyle = texte.couleur;
-    c.direction = isArabic ? 'rtl' : 'ltr';
-    
-    // Inverser l'alignement pour l'arabe
-    if (isArabic) {
-      c.textAlign = 'right';
-    } else {
-      c.textAlign = 'center';
-    }
-    
+    c.direction = arabic ? 'rtl' : 'ltr';
+    c.textAlign = arabic ? 'right' : 'center';
     c.textBaseline = 'middle';
-    
     c.shadowColor = 'rgba(0, 0, 0, 0.5)';
     c.shadowBlur = 6;
-    c.shadowOffsetX = isArabic ? -1 : 1;
+    c.shadowOffsetX = arabic ? -1 : 1;
     c.shadowOffsetY = 1;
     
     var maxWidth = ZONE_ORANGE.w - 40;
-    var lineHeight = texte.taille * 1.5; // Augmenter l'espacement pour l'arabe
-    
-    // Découper en lignes si nécessaire
+    var lineHeight = texte.taille * 1.5;
     var words = texte.texte.split(' ');
     var lines = [];
     var currentLine = '';
@@ -201,7 +223,6 @@ function drawTextesOrange(c) {
     words.forEach(function(word) {
       var testLine = currentLine ? currentLine + ' ' + word : word;
       var metrics = c.measureText(testLine);
-      
       if (metrics.width > maxWidth && currentLine) {
         lines.push(currentLine);
         currentLine = word;
@@ -209,75 +230,48 @@ function drawTextesOrange(c) {
         currentLine = testLine;
       }
     });
-    
     if (currentLine) lines.push(currentLine);
-    
-    // Afficher chaque ligne
-    // Pour l'arabe, inverser l'ordre des lignes
-    if (isArabic) lines = lines.reverse();
+    if (arabic) lines = lines.reverse();
     
     var startY = texte.posY - (lines.length - 1) * lineHeight / 2;
-    
     lines.forEach(function(line, lineIndex) {
       var lineY = startY + lineIndex * lineHeight;
-      var displayText = isArabic ? line : line;
-      
-      // Ajuster la position X pour l'arabe
-      var posX = texte.posX;
-      if (isArabic) {
-        posX = ZONE_ORANGE.x + ZONE_ORANGE.w - 30; // Aligner à droite
-      }
-      
-      c.fillText(displayText, posX, lineY);
+      c.fillText(line, texte.posX, lineY);
     });
     
-    // Afficher le rectangle de sélection si en édition
     if (texteDragActif === index) {
       c.strokeStyle = '#00ff00';
       c.lineWidth = 2;
       c.setLineDash([5, 5]);
-      c.strokeRect(texte.posX - maxWidth/2 - 10, texte.posY - texte.taille, maxWidth + 20, texte.taille * 2.5);
+      var maxWidth2 = ZONE_ORANGE.w - 40;
+      var rectX = arabic ? texte.posX - maxWidth2 - 10 : texte.posX - maxWidth2/2 - 10;
+      c.strokeRect(rectX, texte.posY - texte.taille, maxWidth2 + 20, texte.taille * 2.5);
       c.setLineDash([]);
     }
-
     c.restore();
   });
 }
 
-// Détecter si le texte contient de l'arabe
-function isArabicText(text) {
-  var arabicRegex = /[\u0600-\u06FF]/g;
-  return arabicRegex.test(text);
-}
-
 function drawAdvancedTextWithColors(c, texte, posX, posY, taille, colorStyles, alignment, police) {
   if (!texte) return;
-  
-  police = police || 'Segoe UI';
-  var isArabic = isArabicText(texte);
-  
-  // Choisir la meilleure police pour l'arabe
-  if (isArabic) {
-    police = 'Arial, "Segoe UI", "Traditional Arabic", "Simplified Arabic", sans-serif';
+  var arabic = isArabicText(texte);
+  var fontFamily;
+  if (police === 'GE-SS-Two-Bold') {
+    fontFamily = '"GE-SS-Two-Bold"';
+  } else {
+    fontFamily = getOptimalFontForText(arabic, police);
   }
-  
   c.save();
-  c.font = 'bold ' + taille + 'px ' + police;
-  
-  // Appliquer la direction RTL pour l'arabe
-  if (isArabic) {
-    c.direction = 'rtl';
-    // Inverser l'alignement pour l'arabe
+  c.font = 'bold ' + taille + 'px ' + fontFamily;
+  c.direction = arabic ? 'rtl' : 'ltr';
+  if (arabic) {
     if (alignment === 'left') c.textAlign = 'right';
     else if (alignment === 'right') c.textAlign = 'left';
     else c.textAlign = alignment || 'center';
   } else {
-    c.direction = 'ltr';
     c.textAlign = alignment || 'left';
   }
-  
   c.textBaseline = 'top';
-  
   c.shadowColor = 'rgba(0, 0, 0, 0.8)';
   c.shadowBlur = 8;
   c.shadowOffsetX = 2;
@@ -286,102 +280,63 @@ function drawAdvancedTextWithColors(c, texte, posX, posY, taille, colorStyles, a
   var lineHeight = taille * 1.5;
   var maxWidth = 400;
   var currentY = posY;
-  
   var words = texte.split(' ');
   var lineWords = [];
-  
-  // Ajuster posX selon l'alignement pour le calcul
   var drawX = posX;
-  if (alignment === 'center') {
-    drawX = posX;
-  } else if (isArabic && alignment === 'left') {
-    drawX = posX; // RTL: gauche en arabe = droite en affichage
-  }
   
   words.forEach(function(word) {
     var testLine = lineWords.length > 0 ? lineWords.join(' ') + ' ' + word : word;
     var metrics = c.measureText(testLine);
-    
     if (metrics.width > maxWidth && lineWords.length > 0) {
-      drawLineWithColors(c, lineWords, drawX, currentY, taille, colorStyles, alignment, isArabic);
+      drawLineWithColors(c, lineWords, drawX, currentY, taille, colorStyles, alignment, arabic);
       currentY += lineHeight;
       lineWords = [word];
     } else {
       lineWords.push(word);
     }
   });
-  
   if (lineWords.length > 0) {
-    drawLineWithColors(c, lineWords, drawX, currentY, taille, colorStyles, alignment, isArabic);
+    drawLineWithColors(c, lineWords, drawX, currentY, taille, colorStyles, alignment, arabic);
   }
-  
-  // Afficher le rectangle de sélection si en drag
-  if (textAvanceDragActif) {
-    c.strokeStyle = '#00ff00';
-    c.lineWidth = 2;
-    c.setLineDash([5, 5]);
-    var totalHeight = (Math.ceil(words.length / 3)) * lineHeight;
-    
-    var rectX = drawX;
-    if (alignment === 'center') {
-      rectX = drawX - maxWidth / 2;
-    } else if (alignment === 'right') {
-      rectX = drawX - maxWidth;
-    }
-    
-    c.strokeRect(rectX - 10, posY - 10, maxWidth + 20, totalHeight + 20);
-    c.setLineDash([]);
-  }
-  
   c.restore();
 }
 
-function drawLineWithColors(c, words, x, y, taille, colorStyles, alignment, isArabic) {
+function drawLineWithColors(c, words, x, y, taille, colorStyles, alignment, arabic) {
   var currentX = x;
   var line = words.join(' ');
   var lineWidth = c.measureText(line).width;
-  
-  // Ajuster le point de départ selon l'alignement
-  if (alignment === 'center') {
-    currentX = x - lineWidth / 2;
-  } else if (alignment === 'right') {
-    currentX = x - lineWidth;
-  } else if (isArabic && alignment === 'left') {
-    currentX = x - lineWidth; // RTL: aligner à droite visuellement
-  }
-  
-  // Pour l'arabe, inverser l'ordre des mots pour l'affichage RTL
-  var displayWords = isArabic ? words.reverse() : words;
-  
+  if (alignment === 'center') currentX = x - lineWidth / 2;
+  else if (alignment === 'right') currentX = x - lineWidth;
+  else if (arabic && alignment === 'left') currentX = x - lineWidth;
+  var displayWords = arabic ? words.slice().reverse() : words;
   displayWords.forEach(function(word) {
     var wordColor = '#ffffff';
-    
     colorStyles.forEach(function(style) {
       if (word.toLowerCase().includes(style.mot.toLowerCase()) || 
           style.mot.toLowerCase().includes(word.toLowerCase())) {
         wordColor = style.couleur;
       }
     });
-    
     c.fillStyle = wordColor;
-    
-    // Sauvegarder temporairement pour chaque mot
     var savedAlign = c.textAlign;
     c.textAlign = 'left';
     c.fillText(word + ' ', currentX, y);
     c.textAlign = savedAlign;
-    
-    var metrics = c.measureText(word + ' ');
-    currentX += metrics.width;
+    currentX += c.measureText(word + ' ').width;
   });
 }
+
+// ╔═════════════════════════════════════════════════════════════╗
+// ║ DESSIN PRINCIPAL                                           ║
+// ╚═════════════════════════════════════════════════════════════╝
 
 function drawCanvas() {
   ctx.clearRect(0,0,NW,NH);
   ctx.fillStyle='#111'; ctx.fillRect(0,0,NW,NH);
   if (bgImg) ctx.drawImage(bgImg,0,0,NW,NH);
 
-  [3,1,2,0].forEach(function(i){
+  // Calques fixes (sauf Vecteezy qui est géré séparément)
+  [3,1,0].forEach(function(i){
     var z=ZONES[i];
     if (images[i]) {
       drawFit(ctx, images[i], z.x, z.y, z.w, z.h, fits[i]);
@@ -399,10 +354,36 @@ function drawCanvas() {
     }
   });
 
-  // Afficher tous les textes orange
+  // ── VECTEEZY : position et taille dynamiques ──
+  var vz = vecteezyZone;
+  if (images[2]) {
+    drawFit(ctx, images[2], vz.x, vz.y, vz.w, vz.h, fits[2]);
+  } else {
+    ctx.save();
+    ctx.globalAlpha=0.07; ctx.fillStyle=ZONES[2].color; ctx.fillRect(vz.x,vz.y,vz.w,vz.h);
+    ctx.globalAlpha=0.5; ctx.strokeStyle=ZONES[2].color; ctx.lineWidth=3;
+    ctx.setLineDash([12,8]); ctx.strokeRect(vz.x+1,vz.y+1,vz.w-2,vz.h-2); ctx.setLineDash([]);
+    ctx.fillStyle=ZONES[2].color; ctx.globalAlpha=1;
+    var fs2 = Math.max(20, Math.min(28, vz.h*0.22));
+    ctx.font='600 '+fs2+'px Segoe UI,sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('Vecteezy', vz.x+vz.w/2, vz.y+vz.h/2);
+    ctx.restore();
+  }
+
+  // Indicateur de drag actif sur Vecteezy
+  if (vecteezyDragActif) {
+    ctx.save();
+    ctx.strokeStyle = '#a8e060';
+    ctx.lineWidth = 4;
+    ctx.setLineDash([8, 4]);
+    ctx.strokeRect(vz.x, vz.y, vz.w, vz.h);
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
   drawTextesOrange(ctx);
 
-  // Afficher le texte avancé avec position libre et police
   if (texteAvance.visible && texteAvance.texte) {
     drawAdvancedTextWithColors(ctx, texteAvance.texte, texteAvance.posX, texteAvance.posY, texteAvance.taille, texteAvance.colorStyles, texteAvance.alignment, texteAvance.police);
   }
@@ -410,32 +391,28 @@ function drawCanvas() {
   if (texteGlobal) {
     ctx.save();
     ctx.fillStyle='#ffffff';
-    
-    // Détecter si le texte est en arabe
-    var isArabicText = /[\u0600-\u06FF]/.test(texteGlobal);
-    var police = 'Arial, "Segoe UI", "Traditional Arabic", sans-serif';
-    
+    var policeSimple = document.getElementById('policeTexteSimple').value;
+    var arabicGlobal = isArabicText(texteGlobal);
+    var police;
+    if (policeSimple === 'GE-SS-Two-Bold') {
+      police = '"GE-SS-Two-Bold"';
+    } else {
+      police = getOptimalFontForText(arabicGlobal, policeSimple);
+    }
     ctx.font='bold 36px ' + police;
-    ctx.textAlign = isArabicText ? 'right' : 'center';
-    ctx.direction = isArabicText ? 'rtl' : 'ltr';
+    ctx.textAlign = arabicGlobal ? 'right' : 'center';
+    ctx.direction = arabicGlobal ? 'rtl' : 'ltr';
     ctx.shadowColor='rgba(0,0,0,0.8)';
     ctx.shadowBlur=8;
-    ctx.shadowOffsetX = isArabicText ? -2 : 2;
+    ctx.shadowOffsetX = arabicGlobal ? -2 : 2;
     ctx.shadowOffsetY=2;
-    
-    var x = isArabicText ? NW - 50 : NW/2; // Aligner à droite pour l'arabe
+    var x = arabicGlobal ? NW - 50 : NW/2;
     var y = NH - 130;
     var mots = texteGlobal.split(' '), ligne='';
-    
     mots.forEach(function(m){
       var t = ligne ? ligne + ' ' + m : m;
-      if(t.length > 28){
-        ctx.fillText(ligne, x, y);
-        y += 46;
-        ligne = m;
-      } else {
-        ligne = t;
-      }
+      if(t.length > 28){ ctx.fillText(ligne, x, y); y += 46; ligne = m; }
+      else { ligne = t; }
     });
     if(ligne) ctx.fillText(ligne, x, y);
     ctx.restore();
@@ -444,10 +421,8 @@ function drawCanvas() {
 
 function updateSVG() {
   while (svg.firstChild) svg.removeChild(svg.firstChild);
-
   tracedRoutes.forEach(function(r) {
     var routeColor = r.color || '#e97c1a';
-    
     var halo = document.createElementNS(SVG_NS, 'polyline');
     halo.setAttribute('points', r.pointsStr);
     halo.setAttribute('fill', 'none');
@@ -455,7 +430,6 @@ function updateSVG() {
     halo.setAttribute('stroke-linecap', 'round');
     halo.setAttribute('stroke-linejoin', 'round');
     svg.appendChild(halo);
-
     var line = document.createElementNS(SVG_NS, 'polyline');
     line.setAttribute('points', r.pointsStr);
     line.setAttribute('fill', 'none');
@@ -491,30 +465,20 @@ function tracerRoute() {
   var d=dEl.value, a=aEl.value;
   if (!d||!a) { alert('Sélectionnez départ et arrivée'); return; }
   if (d===a)  { alert('Départ = Arrivée'); return; }
-
   var key=d+'-'+a, keyR=a+'-'+d;
   var pts=ROUTES[key]||ROUTES[keyR];
-  if (!pts) { alert('Route non disponible : '+d+' ↔ '+a); return; }
-
+  if (!pts) { alert('Route non disponible : '+d+' ↔️ '+a); return; }
   if (tracedRoutes.some(function(r){return r.key===key||r.key===keyR;})) {
     alert('Route déjà tracée'); return;
   }
-
   var dNom=dEl.options[dEl.selectedIndex].text;
   var aNom=aEl.options[aEl.selectedIndex].text;
-  
-  tracedRoutes.push({ 
-    key:key, 
-    label:dNom+' → '+aNom, 
-    pointsStr:pts,
-    color:couleurSelectionnee
-  });
+  tracedRoutes.push({ key:key, label:dNom+' → '+aNom, pointsStr:pts, color:couleurSelectionnee });
   renderList();
   updateSVG();
 }
 
 function effacerTout() { tracedRoutes=[]; renderList(); updateSVG(); }
-
 function supprimerRoute(i) { tracedRoutes.splice(i,1); renderList(); updateSVG(); }
 
 function renderList() {
@@ -528,44 +492,68 @@ function renderList() {
   });
 }
 
-function ajouterTexte() { 
-  texteGlobal = document.getElementById('texteZone').value; 
-  draw(); 
+function ajouterTexte() {
+  texteGlobal = document.getElementById('texteZone').value;
+  if (isArabicText(texteGlobal)) {
+    document.getElementById('policeTexteSimple').value = 'GE-SS-Two-Bold';
+  }
+  draw();
 }
 
 // ╔═════════════════════════════════════════════════════════════╗
-// ║ GESTION DES TEXTES ORANGE (MULTIPLES) - ÉDITION DYNAMIQUE  ║
+// ║ CONTRÔLES VECTEEZY : TAILLE ET POSITION                   ║
+// ╚═════════════════════════════════════════════════════════════╝
+
+function onVecteezyWidthChange(val) {
+  vecteezyZone.w = parseInt(val);
+  document.getElementById('vecteezyWVal').textContent = val + 'px';
+  draw();
+}
+
+function onVecteezyHeightChange(val) {
+  vecteezyZone.h = parseInt(val);
+  document.getElementById('vecteezyHVal').textContent = val + 'px';
+  draw();
+}
+
+function resetVecteezyPosition() {
+  vecteezyZone.x = 584.10;
+  vecteezyZone.y = 522.55;
+  vecteezyZone.w = 234.50;
+  vecteezyZone.h = 126.76;
+  syncVecteezyInputs();
+  draw();
+}
+
+// ╔═════════════════════════════════════════════════════════════╗
+// ║ GESTION DES TEXTES ORANGE                                 ║
 // ╚═════════════════════════════════════════════════════════════╝
 
 function ajouterTexteOrange() {
   var texte = document.getElementById('texteOrange').value;
-  
-  if (!texte.trim()) {
-    alert('Veuillez entrer un texte');
-    return;
-  }
-  
+  if (!texte.trim()) { alert('Veuillez entrer un texte'); return; }
   if (textOrangeEditionActif !== null) {
-    // Mode édition : mettre à jour le texte existant
     mettreAJourTexteOrangeEdition();
     deselectionnerTexteOrange();
   } else {
-    // Mode ajout : créer un nouveau texte
+    var policeChoisie = document.getElementById('policeOrange').value;
+    if (isArabicText(texte) && policeChoisie !== 'GE-SS-Two-Bold') {
+      policeChoisie = 'GE-SS-Two-Bold';
+      document.getElementById('policeOrange').value = 'GE-SS-Two-Bold';
+    }
     var nouveauTexte = {
       id: Date.now(),
       texte: texte,
       taille: parseInt(document.getElementById('tailleOrange').value),
       bold: document.getElementById('btnBold').classList.contains('active'),
       couleur: document.getElementById('couleurTexteOrange').value,
-      police: document.getElementById('policeOrange').value,
+      police: policeChoisie,
       posX: ZONE_ORANGE.x + ZONE_ORANGE.w / 2,
       posY: ZONE_ORANGE.y + ZONE_ORANGE.h / 2
     };
-    
     textesOrange.push(nouveauTexte);
     document.getElementById('texteOrange').value = '';
   }
-  
   rendreListeTextesOrange();
   draw();
 }
@@ -573,16 +561,13 @@ function ajouterTexteOrange() {
 function rendreListeTextesOrange() {
   var liste = document.getElementById('listeTextesOrange');
   liste.innerHTML = '';
-  
   textesOrange.forEach(function(t, index) {
     var div = document.createElement('div');
     div.className = 'texte-item';
-    
     if (textOrangeEditionActif === index) {
       div.style.background = '#1e1020';
       div.style.borderColor = '#e97c1a';
     }
-    
     var isBold = t.bold ? 'B' : '';
     var content = document.createElement('div');
     content.className = 'texte-item-content';
@@ -593,21 +578,11 @@ function rendreListeTextesOrange() {
         '<span>' + t.taille + 'px</span>' +
         (isBold ? '<span>B</span>' : '') +
       '</div>';
-    
-    // Rendre cliquable pour éditer
     content.style.cursor = 'pointer';
-    content.onclick = function(e) {
-      e.stopPropagation();
-      selectionnerTexteOrange(index);
-    };
-    
+    content.onclick = function(e) { e.stopPropagation(); selectionnerTexteOrange(index); };
     var btnDelete = document.createElement('button');
     btnDelete.textContent = '✕';
-    btnDelete.onclick = function(e) {
-      e.stopPropagation();
-      supprimerTexteOrange(index);
-    };
-    
+    btnDelete.onclick = function(e) { e.stopPropagation(); supprimerTexteOrange(index); };
     div.appendChild(content);
     div.appendChild(btnDelete);
     liste.appendChild(div);
@@ -615,16 +590,14 @@ function rendreListeTextesOrange() {
 }
 
 function selectionnerTexteOrange(index) {
+  _blockerMiseAJour = true;
   textOrangeEditionActif = index;
   var t = textesOrange[index];
-  
-  // Mettre à jour les contrôles avec les valeurs du texte sélectionné
   document.getElementById('texteOrange').value = t.texte;
   document.getElementById('tailleOrange').value = t.taille;
   document.getElementById('tailleValue').textContent = t.taille + ' px';
   document.getElementById('couleurTexteOrange').value = t.couleur;
-  document.getElementById('policeOrange').value = t.police;
-  
+  document.getElementById('policeOrange').value = isArabicText(t.texte) ? 'GE-SS-Two-Bold' : t.police;
   if (t.bold) {
     document.getElementById('btnBold').classList.add('active');
     document.getElementById('btnBold').style.background = '#1e1020';
@@ -635,24 +608,29 @@ function selectionnerTexteOrange(index) {
     document.getElementById('btnBold').style.background = '#111118';
     document.getElementById('btnBold').style.color = '#444';
   }
-  
-  // Mettre à jour le bouton
   document.getElementById('btnAjouterTexteOrange').textContent = '✎ Mettre à jour';
-  
+  _blockerMiseAJour = false;
   rendreListeTextesOrange();
   draw();
 }
 
 function mettreAJourTexteOrangeEdition() {
   if (textOrangeEditionActif === null) return;
-  
+  if (_blockerMiseAJour) return;
   var t = textesOrange[textOrangeEditionActif];
-  t.texte = document.getElementById('texteOrange').value;
+  var texte = document.getElementById('texteOrange').value;
+  var police;
+  if (isArabicText(texte)) {
+    police = 'GE-SS-Two-Bold';
+    document.getElementById('policeOrange').value = 'GE-SS-Two-Bold';
+  } else {
+    police = document.getElementById('policeOrange').value;
+  }
+  t.texte = texte;
   t.taille = parseInt(document.getElementById('tailleOrange').value);
   t.couleur = document.getElementById('couleurTexteOrange').value;
-  t.police = document.getElementById('policeOrange').value;
+  t.police = police;
   t.bold = document.getElementById('btnBold').classList.contains('active');
-  
   rendreListeTextesOrange();
   draw();
 }
@@ -672,11 +650,8 @@ function deselectionnerTexteOrange() {
 
 function supprimerTexteOrange(index) {
   textesOrange.splice(index, 1);
-  if (textOrangeEditionActif === index) {
-    deselectionnerTexteOrange();
-  } else {
-    rendreListeTextesOrange();
-  }
+  if (textOrangeEditionActif === index) deselectionnerTexteOrange();
+  else rendreListeTextesOrange();
   draw();
 }
 
@@ -687,99 +662,64 @@ function effacerTousTextes() {
   draw();
 }
 
-// Gestion de la taille avec slider - MÀJ DYNAMIQUE
 document.getElementById('tailleOrange').addEventListener('input', function(e) {
   var taille = parseInt(e.target.value);
   document.getElementById('tailleValue').textContent = taille + ' px';
-  
-  // Mettre à jour dynamiquement si on édite
-  if (textOrangeEditionActif !== null) {
-    mettreAJourTexteOrangeEdition();
-  }
+  if (textOrangeEditionActif !== null) mettreAJourTexteOrangeEdition();
 });
 
-// Toggle Bold
 document.getElementById('btnBold').addEventListener('click', function() {
   this.classList.toggle('active');
-  
   if (this.classList.contains('active')) {
-    this.style.background = '#1e1020';
-    this.style.color = '#e97c1a';
-    this.style.borderColor = '#3a2010';
+    this.style.background = '#1e1020'; this.style.color = '#e97c1a'; this.style.borderColor = '#3a2010';
   } else {
-    this.style.background = '#111118';
-    this.style.color = '#444';
-    this.style.borderColor = '#1e1e2e';
+    this.style.background = '#111118'; this.style.color = '#444'; this.style.borderColor = '#1e1e2e';
   }
-  
-  // Mettre à jour dynamiquement si on édite
-  if (textOrangeEditionActif !== null) {
-    mettreAJourTexteOrangeEdition();
-  }
+  if (textOrangeEditionActif !== null) mettreAJourTexteOrangeEdition();
 });
 
-// Écouteurs pour les changes de couleur et police
 document.getElementById('couleurTexteOrange').addEventListener('change', function() {
-  if (textOrangeEditionActif !== null) {
-    mettreAJourTexteOrangeEdition();
-  }
+  if (textOrangeEditionActif !== null) mettreAJourTexteOrangeEdition();
 });
 
 document.getElementById('policeOrange').addEventListener('change', function() {
-  if (textOrangeEditionActif !== null) {
-    mettreAJourTexteOrangeEdition();
-  }
+  if (textOrangeEditionActif !== null) mettreAJourTexteOrangeEdition();
 });
 
 document.getElementById('texteOrange').addEventListener('input', function() {
-  if (textOrangeEditionActif !== null) {
-    mettreAJourTexteOrangeEdition();
-  }
+  if (textOrangeEditionActif !== null) mettreAJourTexteOrangeEdition();
 });
 
-// Mettre à jour le texte avancé
 function mettreAJourTexteAvance() {
   var texte = document.getElementById('texteAvance').value;
   var taille = parseInt(document.getElementById('texteSize').value);
   var police = document.getElementById('policeTexteAvance').value;
-  
+  if (isArabicText(texte) && police !== 'GE-SS-Two-Bold') {
+    police = 'GE-SS-Two-Bold';
+    document.getElementById('policeTexteAvance').value = 'GE-SS-Two-Bold';
+  }
   texteAvance.texte = texte;
   texteAvance.taille = taille;
   texteAvance.police = police;
   texteAvance.visible = texte.trim() !== '';
-  
   draw();
 }
 
-// Colorer le texte sélectionné
 function colorerTexteSelectionne() {
   var textarea = document.getElementById('texteAvance');
   var texteSelectionne = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
-  
-  if (!texteSelectionne.trim()) {
-    alert('Veuillez sélectionner du texte à colorer');
-    return;
-  }
-  
+  if (!texteSelectionne.trim()) { alert('Veuillez sélectionner du texte à colorer'); return; }
   var couleur = document.getElementById('couleurMotSelection').value;
-  
   var existe = texteAvance.colorStyles.some(function(s) {
     return s.mot.toLowerCase() === texteSelectionne.toLowerCase();
   });
-  
   if (existe) {
     texteAvance.colorStyles.forEach(function(s) {
-      if (s.mot.toLowerCase() === texteSelectionne.toLowerCase()) {
-        s.couleur = couleur;
-      }
+      if (s.mot.toLowerCase() === texteSelectionne.toLowerCase()) s.couleur = couleur;
     });
   } else {
-    texteAvance.colorStyles.push({
-      mot: texteSelectionne,
-      couleur: couleur
-    });
+    texteAvance.colorStyles.push({ mot: texteSelectionne, couleur: couleur });
   }
-  
   rendreListeMots();
   draw();
 }
@@ -787,21 +727,12 @@ function colorerTexteSelectionne() {
 function rendreListeMots() {
   var list = document.getElementById('listeMotsColores');
   list.innerHTML = '';
-  
   texteAvance.colorStyles.forEach(function(style, index) {
     var div = document.createElement('div');
-    div.style.display = 'flex';
-    div.style.alignItems = 'center';
-    div.style.marginBottom = '5px';
-    div.style.padding = '6px';
-    div.style.borderRadius = '5px';
-    div.style.border = '1px solid #222';
-    div.style.background = '#0f0f1a';
-    
-    div.innerHTML = '<span style="flex:1; font-size:11px; color:#ccc;">' + style.mot + '</span>' +
-                    '<div style="width:20px; height:20px; background:' + style.couleur + '; border-radius:3px; margin:0 8px;"></div>' +
-                    '<button onclick="supprimerColoration(' + index + ')" style="background:none; border:none; color:#555; cursor:pointer; padding:2px 6px;">✕</button>';
-    
+    div.style.cssText = 'display:flex;align-items:center;margin-bottom:5px;padding:6px;border-radius:5px;border:1px solid #222;background:#0f0f1a;';
+    div.innerHTML = '<span style="flex:1;font-size:11px;color:#ccc;">' + style.mot + '</span>' +
+      '<div style="width:20px;height:20px;background:' + style.couleur + ';border-radius:3px;margin:0 8px;"></div>' +
+      '<button onclick="supprimerColoration(' + index + ')" style="background:none;border:none;color:#555;cursor:pointer;padding:2px 6px;">✕</button>';
     list.appendChild(div);
   });
 }
@@ -813,16 +744,7 @@ function supprimerColoration(index) {
 }
 
 function effacerTexteAvance() {
-  texteAvance = {
-    texte: '',
-    taille: 36,
-    visible: false,
-    colorStyles: [],
-    posX: 540,
-    posY: 1600,
-    alignment: 'left',
-    police: 'Segoe UI'
-  };
+  texteAvance = { texte:'', taille:36, visible:false, colorStyles:[], posX:540, posY:1600, alignment:'left', police:'Segoe UI' };
   document.getElementById('texteAvance').value = '';
   document.getElementById('texteSize').value = '36';
   document.getElementById('policeTexteAvance').value = 'Segoe UI';
@@ -835,25 +757,17 @@ function effacerTexteAvance() {
 
 function definirAlignement(align) {
   texteAvance.alignment = align;
-  
   document.getElementById('btnAlignGauche').classList.toggle('active', align === 'left');
   document.getElementById('btnAlignCentre').classList.toggle('active', align === 'center');
   document.getElementById('btnAlignDroite').classList.toggle('active', align === 'right');
-  
-  // Mettre à jour les styles des boutons
   ['btnAlignGauche', 'btnAlignCentre', 'btnAlignDroite'].forEach(function(id) {
     var btn = document.getElementById(id);
     if (btn.classList.contains('active')) {
-      btn.style.background = '#1e1020';
-      btn.style.color = '#e97c1a';
-      btn.style.borderColor = '#3a2010';
+      btn.style.background = '#1e1020'; btn.style.color = '#e97c1a'; btn.style.borderColor = '#3a2010';
     } else {
-      btn.style.background = '#111118';
-      btn.style.color = '#444';
-      btn.style.borderColor = '#1e1e2e';
+      btn.style.background = '#111118'; btn.style.color = '#444'; btn.style.borderColor = '#1e1e2e';
     }
   });
-  
   draw();
 }
 
@@ -906,23 +820,18 @@ function downloadImage() {
   svgClone.setAttribute('width',  NW);
   svgClone.setAttribute('height', NH);
   svgClone.setAttribute('viewBox','0 0 '+NW+' '+NH);
-
   var svgData = new XMLSerializer().serializeToString(svgClone);
   var svgBlob = new Blob([svgData], {type:'image/svg+xml;charset=utf-8'});
   var svgURL  = URL.createObjectURL(svgBlob);
-
   var out  = document.createElement('canvas');
   out.width=NW; out.height=NH;
   var oc   = out.getContext('2d');
   oc.imageSmoothingEnabled=true; oc.imageSmoothingQuality='high';
-
   oc.drawImage(canvas, 0, 0);
-
   var svgImg = new Image();
   svgImg.onload = function() {
     oc.drawImage(svgImg, 0, 0, NW, NH);
     URL.revokeObjectURL(svgURL);
-
     var a = document.createElement('a');
     a.download = 'composition_adm.png';
     a.href = out.toDataURL('image/png');
@@ -944,18 +853,9 @@ function resetAll(){
   textesOrange = [];
   texteDragActif = null;
   textOrangeEditionActif = null;
+  vecteezyZone = { x:584.10, y:522.55, w:234.50, h:126.76 };
   
-  texteAvance = {
-    texte: '',
-    taille: 36,
-    visible: false,
-    colorStyles: [],
-    posX: 540,
-    posY: 1600,
-    alignment: 'left',
-    police: 'Segoe UI'
-  };
-  
+  texteAvance = { texte:'', taille:36, visible:false, colorStyles:[], posX:540, posY:1600, alignment:'left', police:'Segoe UI' };
   textAvanceDragActif = false;
   
   [0,1,2,3].forEach(function(i){
@@ -977,7 +877,6 @@ function resetAll(){
   document.getElementById('texteSize').value='36';
   document.getElementById('policeTexteAvance').value='Segoe UI';
   document.getElementById('couleurMotSelection').value='#ff0000';
-  
   document.getElementById('texteOrange').value = '';
   document.getElementById('tailleOrange').value = '32';
   document.getElementById('couleurTexteOrange').value = '#ffffff';
@@ -987,25 +886,21 @@ function resetAll(){
   document.getElementById('btnBold').style.background = '#111118';
   document.getElementById('btnBold').style.color = '#444';
   document.getElementById('btnBold').style.borderColor = '#1e1e2e';
-  
   document.getElementById('btnAlignGauche').classList.add('active');
   document.getElementById('btnAlignCentre').classList.remove('active');
   document.getElementById('btnAlignDroite').classList.remove('active');
-  
   document.getElementById('btnAlignGauche').style.background = '#1e1020';
   document.getElementById('btnAlignGauche').style.color = '#e97c1a';
   document.getElementById('btnAlignGauche').style.borderColor = '#3a2010';
-  
   document.getElementById('btnAlignCentre').style.background = '#111118';
   document.getElementById('btnAlignCentre').style.color = '#444';
   document.getElementById('btnAlignCentre').style.borderColor = '#1e1e2e';
-  
   document.getElementById('btnAlignDroite').style.background = '#111118';
   document.getElementById('btnAlignDroite').style.color = '#444';
   document.getElementById('btnAlignDroite').style.borderColor = '#1e1e2e';
-  
   document.getElementById('btnAjouterTexteOrange').textContent = '➕ Ajouter texte';
   
+  syncVecteezyInputs();
   selectColor('#e97c1a');
   renderList();
   rendreListeMots();
@@ -1015,125 +910,159 @@ function resetAll(){
 
 // EVENT LISTENERS
 document.getElementById('texteZone').addEventListener('input', ajouterTexte);
+document.getElementById('policeTexteSimple').addEventListener('change', ajouterTexte);
 document.getElementById('texteAvance').addEventListener('input', mettreAJourTexteAvance);
 document.getElementById('texteSize').addEventListener('change', mettreAJourTexteAvance);
 document.getElementById('policeTexteAvance').addEventListener('change', mettreAJourTexteAvance);
 document.getElementById('btnColorerSelection').addEventListener('click', colorerTexteSelectionne);
 document.getElementById('btnEffacerTexteAvance').addEventListener('click', effacerTexteAvance);
-
 document.getElementById('btnTracer').addEventListener('click', tracerRoute);
 document.getElementById('btnClear').addEventListener('click', effacerTout);
-
 document.getElementById('btnAjouterTexteOrange').addEventListener('click', ajouterTexteOrange);
 document.getElementById('btnEffacerTousTextes').addEventListener('click', effacerTousTextes);
-
 document.getElementById('btnAlignGauche').addEventListener('click', function() { definirAlignement('left'); });
 document.getElementById('btnAlignCentre').addEventListener('click', function() { definirAlignement('center'); });
 document.getElementById('btnAlignDroite').addEventListener('click', function() { definirAlignement('right'); });
+document.getElementById('btnResetVecteezy').addEventListener('click', resetVecteezyPosition);
+document.getElementById('vecteezyW').addEventListener('input', function() { onVecteezyWidthChange(this.value); });
+document.getElementById('vecteezyH').addEventListener('input', function() { onVecteezyHeightChange(this.value); });
 
 // ╔═════════════════════════════════════════════════════════════╗
-// ║ DRAG AND DROP 2D SUR LE CANVAS                             ║
+// ║ DRAG AND DROP — VECTEEZY + TEXTES                         ║
 // ╚═════════════════════════════════════════════════════════════╝
 
 var composition = document.getElementById('composition');
+var isDragging = false;
+
+function hitTestVecteezy(mx, my, scaleX, scaleY) {
+  var vz = vecteezyZone;
+  var sx = vz.x * scaleX, sy = vz.y * scaleY;
+  var sw = vz.w * scaleX, sh = vz.h * scaleY;
+  return mx >= sx && mx <= sx + sw && my >= sy && my <= sy + sh;
+}
 
 composition.addEventListener('mousedown', function(e) {
   var rect = canvas.getBoundingClientRect();
   var mouseX = e.clientX - rect.left;
   var mouseY = e.clientY - rect.top;
-  
   var scaleX = rect.width / NW;
   var scaleY = rect.height / NH;
-  
-  // Vérifier si on clique sur le texte avancé d'abord
+
+  // Texte avancé
   if (texteAvance.visible && texteAvance.texte) {
     var textScreenX = texteAvance.posX * scaleX;
     var textScreenY = texteAvance.posY * scaleY;
-    
-    if (Math.abs(mouseX - textScreenX) < 80 && Math.abs(mouseY - textScreenY) < 60) {
+    if (Math.abs(mouseX - textScreenX) < 150 && Math.abs(mouseY - textScreenY) < 80) {
       textAvanceDragActif = true;
+      isDragging = true;
       dragOffsetAdvanceX = mouseX - textScreenX;
       dragOffsetAdvanceY = mouseY - textScreenY;
+      composition.style.cursor = 'grabbing';
       draw();
       return;
     }
   }
   
-  // Vérifier si on clique sur un texte orange
-  if (textesOrange.length === 0) return;
-  
-  for (var i = 0; i < textesOrange.length; i++) {
-    var t = textesOrange[i];
-    var textScreenX = t.posX * scaleX;
-    var textScreenY = t.posY * scaleY;
-    
-    // Zone de clic (40px autour du texte)
-    if (Math.abs(mouseX - textScreenX) < 60 && Math.abs(mouseY - textScreenY) < 40) {
-      texteDragActif = i;
-      dragOffsetX = mouseX - textScreenX;
-      dragOffsetY = mouseY - textScreenY;
-      draw();
-      return;
+  // Textes orange
+  if (textesOrange.length > 0) {
+    for (var i = textesOrange.length - 1; i >= 0; i--) {
+      var t = textesOrange[i];
+      var textScreenX = t.posX * scaleX;
+      var textScreenY = t.posY * scaleY;
+      if (Math.abs(mouseX - textScreenX) < 200 && Math.abs(mouseY - textScreenY) < 60) {
+        texteDragActif = i;
+        isDragging = true;
+        dragOffsetX = mouseX - textScreenX;
+        dragOffsetY = mouseY - textScreenY;
+        composition.style.cursor = 'grabbing';
+        draw();
+        return;
+      }
     }
   }
-});
 
-document.addEventListener('mousemove', function(e) {
-  if (textAvanceDragActif) {
-    var rect = canvas.getBoundingClientRect();
-    var mouseX = e.clientX - rect.left;
-    var mouseY = e.clientY - rect.top;
-    var scaleX = rect.width / NW;
-    var scaleY = rect.height / NH;
-    
-    // Calculer la nouvelle position
-    texteAvance.posX = (mouseX - dragOffsetAdvanceX) / scaleX;
-    texteAvance.posY = (mouseY - dragOffsetAdvanceY) / scaleY;
-    
-    // Limiter aux limites de la composition
-    texteAvance.posX = Math.max(50, Math.min(NW - 50, texteAvance.posX));
-    texteAvance.posY = Math.max(50, Math.min(NH - 50, texteAvance.posY));
-    
+  // ── VECTEEZY DRAG ──
+  if (hitTestVecteezy(mouseX, mouseY, scaleX, scaleY)) {
+    vecteezyDragActif = true;
+    isDragging = true;
+    dragVecteezyOffsetX = mouseX - vecteezyZone.x * scaleX;
+    dragVecteezyOffsetY = mouseY - vecteezyZone.y * scaleY;
+    composition.style.cursor = 'grabbing';
     draw();
     return;
   }
   
-  if (texteDragActif === null) return;
-  
+  composition.style.cursor = 'grab';
+});
+
+document.addEventListener('mousemove', function(e) {
+  if (!isDragging) return;
   var rect = canvas.getBoundingClientRect();
   var mouseX = e.clientX - rect.left;
   var mouseY = e.clientY - rect.top;
   var scaleX = rect.width / NW;
   var scaleY = rect.height / NH;
   
-  var t = textesOrange[texteDragActif];
-  
-  // Calculer la nouvelle position
-  var newPosX = (mouseX - dragOffsetX) / scaleX;
-  var newPosY = (mouseY - dragOffsetY) / scaleY;
-  
-  // Limiter dans la zone orange
-  var minX = ZONE_ORANGE.x + 30;
-  var maxX = ZONE_ORANGE.x + ZONE_ORANGE.w - 30;
-  var minY = ZONE_ORANGE.y + t.taille;
-  var maxY = ZONE_ORANGE.y + ZONE_ORANGE.h - t.taille;
-  
-  t.posX = Math.max(minX, Math.min(maxX, newPosX));
-  t.posY = Math.max(minY, Math.min(maxY, newPosY));
-  
-  draw();
-});
-
-document.addEventListener('mouseup', function() {
   if (textAvanceDragActif) {
-    textAvanceDragActif = false;
-    draw();
+    texteAvance.posX = Math.max(50, Math.min(NW - 50, (mouseX - dragOffsetAdvanceX) / scaleX));
+    texteAvance.posY = Math.max(50, Math.min(NH - 50, (mouseY - dragOffsetAdvanceY) / scaleY));
+    draw(); return;
   }
   
   if (texteDragActif !== null) {
-    texteDragActif = null;
+    var t = textesOrange[texteDragActif];
+    var minX = ZONE_ORANGE.x + 30, maxX = ZONE_ORANGE.x + ZONE_ORANGE.w - 30;
+    var minY = ZONE_ORANGE.y + t.taille, maxY = ZONE_ORANGE.y + ZONE_ORANGE.h - t.taille;
+    t.posX = Math.max(minX, Math.min(maxX, (mouseX - dragOffsetX) / scaleX));
+    t.posY = Math.max(minY, Math.min(maxY, (mouseY - dragOffsetY) / scaleY));
+    draw(); return;
+  }
+
+  // ── DÉPLACEMENT VECTEEZY ──
+  if (vecteezyDragActif) {
+    var newX = (mouseX - dragVecteezyOffsetX) / scaleX;
+    var newY = (mouseY - dragVecteezyOffsetY) / scaleY;
+    vecteezyZone.x = Math.max(0, Math.min(NW - vecteezyZone.w, newX));
+    vecteezyZone.y = Math.max(0, Math.min(NH - vecteezyZone.h, newY));
     draw();
   }
 });
 
+// Survol : curseur de déplacement sur zone Vecteezy
+composition.addEventListener('mousemove', function(e) {
+  if (isDragging) return;
+  var rect = canvas.getBoundingClientRect();
+  var mouseX = e.clientX - rect.left;
+  var mouseY = e.clientY - rect.top;
+  var scaleX = rect.width / NW;
+  var scaleY = rect.height / NH;
+  if (hitTestVecteezy(mouseX, mouseY, scaleX, scaleY)) {
+    composition.style.cursor = 'move';
+  } else {
+    composition.style.cursor = 'grab';
+  }
+});
+
+document.addEventListener('mouseup', function() {
+  if (textAvanceDragActif) { textAvanceDragActif = false; isDragging = false; composition.style.cursor = 'grab'; draw(); }
+  if (texteDragActif !== null) { texteDragActif = null; isDragging = false; composition.style.cursor = 'grab'; draw(); }
+  if (vecteezyDragActif) { vecteezyDragActif = false; isDragging = false; composition.style.cursor = 'grab'; draw(); }
+});
+
+// Support tactile mobile
+composition.addEventListener('touchstart', function(e) {
+  var touch = e.touches[0];
+  composition.dispatchEvent(new MouseEvent('mousedown', { clientX: touch.clientX, clientY: touch.clientY }));
+});
+document.addEventListener('touchmove', function(e) {
+  if (isDragging) {
+    var touch = e.touches[0];
+    document.dispatchEvent(new MouseEvent('mousemove', { clientX: touch.clientX, clientY: touch.clientY }));
+  }
+});
+document.addEventListener('touchend', function() {
+  document.dispatchEvent(new MouseEvent('mouseup', {}));
+});
+
+syncVecteezyInputs();
 draw();

@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="style.css">
 <title>Compositeur ADM - Sélection & Positionnement</title>
-
 </head>
 <body>
 <h1>Compositeur d'Images · Autoroutes du Maroc · SÉLECTION & POSITIONNEMENT 🎨</h1>
@@ -20,8 +19,6 @@
     </div>
     <input type="file" id="bgInput" accept="image/*">
 
-    
-
     <hr class="divider">
     <div class="stitle">Calques — positions fixes</div>
 
@@ -30,8 +27,8 @@
       <div class="slot-thumb-wrap"><img class="slot-thumb" id="thumb-0"><span class="slot-empty-hint">Vide</span></div>
       <button class="slot-btn" onclick="triggerSlot(0)">+ Choisir image</button>
       <div class="fit-row">
-        <button class="fit-btn active" id="fit-0-cover"   onclick="setFit(0,'cover')">Cover</button>
-        <button class="fit-btn"        id="fit-0-contain" onclick="setFit(0,'contain')">Contain</button>
+        <button class="fit-btn active" id="fit-0-cover"   onclick="setFit(0,'cover')">Couvrir</button>
+        <button class="fit-btn"        id="fit-0-contain" onclick="setFit(0,'contain')">Contenir</button>
         <button class="fit-btn"        id="fit-0-fill"    onclick="setFit(0,'fill')">Étirer</button>
       </div>
     </div>
@@ -41,32 +38,55 @@
       <div class="slot-thumb-wrap"><img class="slot-thumb" id="thumb-1"><span class="slot-empty-hint">Vide</span></div>
       <button class="slot-btn" onclick="triggerSlot(1)">+ Choisir image</button>
       <div class="fit-row">
-        <button class="fit-btn active" id="fit-1-cover"   onclick="setFit(1,'cover')">Cover</button>
-        <button class="fit-btn"        id="fit-1-contain" onclick="setFit(1,'contain')">Contain</button>
+        <button class="fit-btn active" id="fit-1-cover"   onclick="setFit(1,'cover')">Couvrir</button>
+        <button class="fit-btn"        id="fit-1-contain" onclick="setFit(1,'contain')">Contenir</button>
         <button class="fit-btn"        id="fit-1-fill"    onclick="setFit(1,'fill')">Étirer</button>
       </div>
     </div>
 
-    <div class="slot-card" id="card-2">
-      <div class="slot-header"><div class="slot-dot" style="background:#a8e060"></div><span class="slot-name">Vecteezy / Logo</span></div>
+    <!-- ── VECTEEZY — draggable + taille ── -->
+    <div class="slot-card" id="card-2" style="border-color:#2a3a1a;">
+      <div class="slot-header">
+        <div class="slot-dot" style="background:#a8e060"></div>
+        <span class="slot-name" style="color:#a8e060;">Vecteezy / Logo ✦ Glissable</span>
+      </div>
       <div class="slot-thumb-wrap"><img class="slot-thumb" id="thumb-2"><span class="slot-empty-hint">Vide</span></div>
       <button class="slot-btn" onclick="triggerSlot(2)">+ Choisir image</button>
       <div class="fit-row">
-        <button class="fit-btn active" id="fit-2-cover"   onclick="setFit(2,'cover')">Cover</button>
-        <button class="fit-btn"        id="fit-2-contain" onclick="setFit(2,'contain')">Contain</button>
+        <button class="fit-btn active" id="fit-2-cover"   onclick="setFit(2,'cover')">Couvrir</button>
+        <button class="fit-btn"        id="fit-2-contain" onclick="setFit(2,'contain')">Contenir</button>
         <button class="fit-btn"        id="fit-2-fill"    onclick="setFit(2,'fill')">Étirer</button>
+      </div>
+
+      <!-- Contrôles taille Vecteezy -->
+      <div style="background:#0c1208;border:1px solid #1e2e10;border-radius:7px;padding:9px;margin-top:8px;">
+        <p style="font-size:9px;color:#a8e060;font-weight:700;margin-bottom:8px;letter-spacing:.08em;">📐 TAILLE &amp; POSITION</p>
+
+        <label style="font-size:9px;color:#666;display:block;margin-bottom:3px;">Largeur (W) :</label>
+        <div style="display:flex;gap:5px;align-items:center;margin-bottom:8px;">
+          <input type="range" id="vecteezyW" min="50" max="800" value="234" style="flex:1;accent-color:#a8e060;">
+          <span id="vecteezyWVal" style="font-size:10px;color:#a8e060;min-width:42px;text-align:right;">234px</span>
+        </div>
+
+        <label style="font-size:9px;color:#666;display:block;margin-bottom:3px;">Hauteur (H) :</label>
+        <div style="display:flex;gap:5px;align-items:center;margin-bottom:8px;">
+          <input type="range" id="vecteezyH" min="30" max="600" value="127" style="flex:1;accent-color:#a8e060;">
+          <span id="vecteezyHVal" style="font-size:10px;color:#a8e060;min-width:42px;text-align:right;">127px</span>
+        </div>
+
+        <button class="rbtn" id="btnResetVecteezy" style="background:#1a2a0a;color:#a8e060;border:1px solid #2a4010;font-size:10px;padding:6px;">↺ Position d'origine</button>
+        <p style="font-size:9px;color:#556;margin-top:6px;text-align:center;">💡 Glissez le logo directement sur la toile</p>
       </div>
     </div>
 
-<!-- maps-->
- 
+    <!-- maps -->
     <div class="slot-card" id="card-3">
-      <div class="slot-header"><div class="slot-dot" style="background:#e060c0"></div><span class="slot-name">Carte / Map</span></div>
+      <div class="slot-header"><div class="slot-dot" style="background:#e060c0"></div><span class="slot-name">Carte / Plan</span></div>
       <div class="slot-thumb-wrap"><img class="slot-thumb" id="thumb-3"><span class="slot-empty-hint">Vide</span></div>
       <button class="slot-btn" onclick="triggerSlot(3)">+ Choisir image</button>
       <div class="fit-row">
-        <button class="fit-btn"        id="fit-3-cover"   onclick="setFit(3,'cover')">Cover</button>
-        <button class="fit-btn active" id="fit-3-contain" onclick="setFit(3,'contain')">Contain</button>
+        <button class="fit-btn"        id="fit-3-cover"   onclick="setFit(3,'cover')">Couvrir</button>
+        <button class="fit-btn active" id="fit-3-contain" onclick="setFit(3,'contain')">Contenir</button>
         <button class="fit-btn"        id="fit-3-fill"    onclick="setFit(3,'fill')">Étirer</button>
       </div>
     </div>
@@ -77,44 +97,37 @@
     <div class="stitle">🎨 TEXTE - ZONE ORANGE</div>
     
     <div style="background:#0f0f1a; border:1px solid #1e1e2a; border-radius:8px; padding:10px; margin-bottom:10px;">
-      
-      <!-- Input Texte -->
       <label style="font-size:10px;color:#666;display:block;margin-bottom:5px;">📝 Texte:</label>
       <input type="text" id="texteOrange" class="rsel" placeholder="Entrez votre texte..." style="width:100%;padding:8px;margin-bottom:10px;">
 
-      <!-- Police -->
       <label style="font-size:10px;color:#666;display:block;margin-bottom:5px;">🔤 Police:</label>
       <select id="policeOrange" class="rsel">
         <option value="Segoe UI">Segoe UI (défaut)</option>
         <option value="Poppins-Bold">Poppins Bold</option>
         <option value="Poppins-Black">Poppins Black</option>
         <option value="OpenSans-Bold">Open Sans Bold</option>
+        <option value="GE-SS-Two-Bold">GE SS Two Bold (عربي)</option>
       </select>
 
-      <!-- Taille du texte -->
       <label style="font-size:10px;color:#666;display:block;margin-bottom:5px;">📏 Taille (px):</label>
       <div style="display:flex; gap:5px; margin-bottom:10px;">
         <input type="range" id="tailleOrange" min="16" max="80" value="32" style="flex:1;">
         <span id="tailleValue" style="font-size:10px;color:#e97c1a;min-width:35px;">32 px</span>
       </div>
 
-      <!-- Gras (Bold) -->
       <label style="font-size:10px;color:#666;display:block;margin-bottom:5px;">💪 Style:</label>
       <button class="fit-btn" id="btnBold" style="width:100%; background:#111118; color:#444; margin-bottom:10px;">
-        <strong>B</strong> Gras (Bold)
+        <strong>G</strong> Gras
       </button>
 
-      <!-- Couleur du texte -->
       <label style="font-size:10px;color:#666;display:block;margin-bottom:5px;">🎨 Couleur:</label>
       <input type="color" id="couleurTexteOrange" value="#ffffff" style="width:100%;height:35px;border:none;border-radius:6px;cursor:pointer;margin-bottom:10px;">
 
       <button class="rbtn" id="btnAjouterTexteOrange" style="background:#e97c1a; margin-bottom:8px;">➕ Ajouter texte</button>
 
-      <!-- Liste des textes ajoutés -->
       <div id="listeTextesOrange" style="max-height:150px; overflow-y:auto; margin-bottom:10px;"></div>
 
       <button class="rbtn" id="btnEffacerTousTextes" style="background:#555;">✕ Effacer tous</button>
-
       <p style="font-size:9px;color:#888;margin-top:8px;text-align:center;">💡 Cliquez et déplacez le texte dans la zone orange</p>
     </div>
 
@@ -136,50 +149,46 @@
 
     <div class="stitle">✏️ Texte Simple (Bas) - Dynamique</div>
     
-    <!-- Police pour texte simple -->
     <label style="font-size:10px;color:#666;display:block;margin-bottom:5px;">🔤 Police:</label>
     <select id="policeTexteSimple" class="rsel">
       <option value="Segoe UI">Segoe UI (défaut)</option>
       <option value="Poppins-Bold">Poppins Bold</option>
       <option value="Poppins-Black">Poppins Black</option>
       <option value="OpenSans-Bold">Open Sans Bold</option>
+      <option value="GE-SS-Two-Bold">GE SS Two Bold (عربي)</option>
     </select>
 
     <textarea id="texteZone" class="textarea" placeholder="Texte en bas de l'image (blanc)"></textarea>
 
     <hr class="divider">
 
-    <div class="stitle">🎨 Texte Avancé - DRAG & DROP LIBRE ⚡</div>
-    <p style="font-size:9px;color:#ff6600;margin-bottom:8px;">✨ Tapez votre texte et déplacez-le librement sur le canvas!</p>
+    <div class="stitle">🎨 Texte Avancé - GLISSER & DÉPOSER LIBRE ⚡</div>
+    <p style="font-size:9px;color:#ff6600;margin-bottom:8px;">✨ Tapez votre texte et déplacez-le librement sur la toile!</p>
 
-    <!-- Police pour texte avancé -->
     <label style="font-size:10px;color:#666;display:block;margin-bottom:5px;">🔤 Police:</label>
     <select id="policeTexteAvance" class="rsel">
       <option value="Segoe UI">Segoe UI (défaut)</option>
       <option value="Poppins-Bold">Poppins Bold</option>
       <option value="Poppins-Black">Poppins Black</option>
       <option value="OpenSans-Bold">Open Sans Bold</option>
+      <option value="GE-SS-Two-Bold">GE SS Two Bold (عربي)</option>
     </select>
 
-    <!-- Textarea pour le texte -->
     <div style="margin-bottom:8px;">
       <label style="font-size:9px;color:#666;display:block;margin-bottom:4px;">Votre texte complet:</label>
-      <textarea id="texteAvance" class="textarea" placeholder="Ex: ADM recommande vivement aux usagers de l'axe autoroutier Marrakech-Agadir, de faire preuve de vigilance et de bien se renseigner sur les conditions de circulation avant tout déplacement." rows="4"></textarea>
+      <textarea id="texteAvance" class="textarea" placeholder="Ex: ADM recommande vivement aux usagers..." rows="4"></textarea>
       <p style="font-size:8px;color:#555;margin-top:4px;">💡 Sélectionnez du texte avec la souris pour le colorer</p>
     </div>
 
-    <!-- Taille du texte -->
+    <!-- ── TAILLE TEXTE AVANCÉ — slider identique à zone orange ── -->
     <div style="margin-bottom:8px;">
-      <label style="font-size:10px;color:#666;display:block;margin-bottom:5px;">📏 Taille du texte:</label>
-      <select id="texteSize" style="width:100%;padding:8px;border-radius:7px;border:1px solid #222;background:#1a1a28;color:#ccc;font-size:11px;">
-        <option value="28">28 px (petit)</option>
-        <option value="36" selected>36 px (normal)</option>
-        <option value="48">48 px (grand)</option>
-        <option value="60">60 px (très grand)</option>
-      </select>
+      <label style="font-size:10px;color:#666;display:block;margin-bottom:5px;">📏 Taille (px):</label>
+      <div style="display:flex; gap:5px; align-items:center; margin-bottom:8px;">
+        <input type="range" id="texteSize" min="16" max="80" value="36" style="flex:1;">
+        <span id="texteSizeVal" style="font-size:10px;color:#e97c1a;min-width:35px;">36 px</span>
+      </div>
     </div>
 
-    <!-- Alignement du texte -->
     <div style="margin-bottom:10px;">
       <label style="font-size:10px;color:#666;display:block;margin-bottom:6px;">📍 Alignement:</label>
       <div style="display:flex; gap:5px;">
@@ -189,17 +198,13 @@
       </div>
     </div>
 
-    <!-- ── COLORATION SÉLECTIVE ── -->
     <div style="background:#0f0f1a; border:1px solid #1e1e2a; border-radius:8px; padding:10px; margin-bottom:10px;">
       <p style="font-size:11px;color:#ff9900;margin:0 0 8px 0;font-weight:600;">🎨 Coloration Sélective</p>
-      
       <div style="display:flex; gap:6px; margin-bottom:8px; align-items:center;">
         <label style="font-size:9px;color:#666;white-space:nowrap;">Couleur:</label>
         <input type="color" id="couleurMotSelection" value="#ff0000" style="width:40px;height:32px;border:none;border-radius:6px;cursor:pointer;">
       </div>
-
       <button class="rbtn" id="btnColorerSelection" style="background:#ff6600;margin-bottom:8px;padding:7px;">🎨 Colorer la sélection</button>
-
       <p style="font-size:9px;color:#666;margin:0 0 6px 0;">Mots colorés:</p>
       <div id="listeMotsColores" style="max-height:100px;overflow-y:auto;"></div>
     </div>
@@ -219,7 +224,6 @@
       <svg id="routesSVG" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg"></svg>
     </div>
   </div>
-  
 
 </div>
 
