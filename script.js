@@ -28,7 +28,7 @@ var NW = 1080, NH = 1920;
 
 var ZONES = [
   { label: 'Avis Important', x: 261.30, y: 214.06, w: 547.54, h: 107.00, color: '#e97c1a' },
-  { label: 'Forme orange',   x: 238.31, y: 354.25, w: 607.22, h: 365.68, color: '#4fa3ff' },
+  { label: 'Forme orange',   x: 239.44, y: 351.25, w: 610.91, h: 367.53, color: '#4fa3ff' },
   { label: 'Vecteezy',       x: 584.10, y: 522.55, w: 234.50, h: 126.76, color: '#a8e060' },
   { label: 'Carte / Map',    x: 0,      y: 0,      w: 1080,   h: 1920,   color: '#e060c0' }
 ];
@@ -144,7 +144,7 @@ var _blockerMiseAJour      = false;
 var texteAvance = {
   texte: '', taille: 36, visible: false, colorStyles: [],
   posX: 540, posY: 1600, alignment: 'left', police: 'Poppins-Bold',
-  lineHeight: 0.8
+  lineHeight: 1
 };
 var textAvanceDragActif = false;
 var dragOffsetAdvanceX  = 0, dragOffsetAdvanceY = 0;

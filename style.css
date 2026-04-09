@@ -46,7 +46,7 @@
 
 @font-face {
   font-family: 'GE-SS-Two-Bold';
-  src: url('GE-SS-Two-Bold.otf') format('opentype');
+  src: url('GE-SS-Two-Bold.ttf') format('truetype');
   font-weight: bold;
   font-style: normal;
 }
