@@ -1,22 +1,10 @@
 /* ============================================================
-   COMPOSITEUR ADM — script.js
+   COMPOSITEUR ADM — script.js  (v2 — police par sélection)
    ============================================================
-   Sections :
-     1.  Constantes & Config
-     2.  État (state)
-     3.  Utilitaires
-     4.  Dessin Canvas
-     5.  SVG — Routes
-     6.  Images — Slots
-     7.  Texte Zone Orange
-     8.  Texte Avancé — Fonctions Génériques
-     9.  Texte Avancé 1
-    10.  Texte Avancé 2
-    11.  Drag & Drop
-    12.  Vecteezy — Taille
-    13.  Téléchargement & Reset
-    14.  Event Listeners
-    15.  Initialisation
+   Nouveautés v2 :
+     • Détection arabe MOT PAR MOT → GE-SS-Two-Bold auto
+     • fontStyles : comme colorStyles mais pour la police
+     • Sélection de police sur une portion de texte (comme la couleur)
    ============================================================ */
 
 
@@ -140,18 +128,22 @@ var dragOffsetX            = 0, dragOffsetY = 0;
 var textOrangeEditionActif = null;
 var _blockerMiseAJour      = false;
 
-/* Texte avancé 1 — lineHeight: 0.8 */
+/* Texte avancé 1 */
 var texteAvance = {
-  texte: '', taille: 36, visible: false, colorStyles: [],
+  texte: '', taille: 36, visible: false,
+  colorStyles: [],   /* { mot, couleur } */
+  fontStyles:  [],   /* { mot, police }  ← NOUVEAU */
   posX: 540, posY: 1600, alignment: 'left', police: 'Poppins-Bold',
   lineHeight: 1
 };
 var textAvanceDragActif = false;
 var dragOffsetAdvanceX  = 0, dragOffsetAdvanceY = 0;
 
-/* Texte avancé 2 — lineHeight: 1.5 (défaut) */
+/* Texte avancé 2 */
 var texteAvance2 = {
-  texte: '', taille: 36, visible: false, colorStyles: [],
+  texte: '', taille: 36, visible: false,
+  colorStyles: [],
+  fontStyles:  [],   /* ← NOUVEAU */
   posX: 540, posY: 1750, alignment: 'left', police: 'Poppins-Bold'
 };
 var textAvance2DragActif = false;
@@ -164,22 +156,42 @@ var isDragging = false;
    3. UTILITAIRES
    ============================================================ */
 
+var ARABIC_RE = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+
 function isArabicText(text) {
-  return /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(text);
+  return ARABIC_RE.test(text);
 }
+
+/* Détecte si un MOT individuel est arabe */
+function isArabicWord(word) {
+  return ARABIC_RE.test(word);
+}
+
+var FONT_MAP = {
+  'GE-SS-Two-Bold': '"GE-SS-Two-Bold"',
+  'Poppins-Bold':   '"Poppins-Bold"',
+  'Poppins-Black':  '"Poppins-Black"',
+  'OpenSans-Bold':  '"OpenSans-Bold"'
+};
 
 function getFontString(police) {
-  var map = {
-    'GE-SS-Two-Bold': '"GE-SS-Two-Bold"',
-    'Poppins-Bold':   '"Poppins-Bold"',
-    'Poppins-Black':  '"Poppins-Black"',
-    'OpenSans-Bold':  '"OpenSans-Bold"'
-  };
-  return map[police] || '"Poppins-Bold"';
+  return FONT_MAP[police] || '"Poppins-Bold"';
 }
 
-function autoPolice(texte, fallback) {
-  return isArabicText(texte) ? '"GE-SS-Two-Bold"' : getFontString(fallback);
+/* Police d'un mot : fontStyles en priorité, sinon arabe auto, sinon défaut */
+function resolveWordFont(word, fontStyles, defaultPolice) {
+  /* 1. fontStyles explicites */
+  for (var i = 0; i < fontStyles.length; i++) {
+    var s = fontStyles[i];
+    if (word.toLowerCase().includes(s.mot.toLowerCase()) ||
+        s.mot.toLowerCase().includes(word.toLowerCase())) {
+      return getFontString(s.police);
+    }
+  }
+  /* 2. Arabe automatique */
+  if (isArabicWord(word)) return '"GE-SS-Two-Bold"';
+  /* 3. Police globale du bloc */
+  return getFontString(defaultPolice);
 }
 
 function drawFit(c, img, dx, dy, dw, dh, mode) {
@@ -230,14 +242,12 @@ function drawCanvas() {
 
   if (bgImg) ctx.drawImage(bgImg, 0, 0, NW, NH);
 
-  /* Calques fixes : carte → forme → avis */
   [3, 1, 0].forEach(function(i) {
     var z = ZONES[i];
     if (images[i]) drawFit(ctx, images[i], z.x, z.y, z.w, z.h, fits[i]);
     else            drawZonePlaceholder(ctx, z);
   });
 
-  /* Vecteezy (position dynamique) */
   if (images[2]) drawFit(ctx, images[2], vecteezyZone.x, vecteezyZone.y, vecteezyZone.w, vecteezyZone.h, fits[2]);
   else           drawZonePlaceholder(ctx, { x: vecteezyZone.x, y: vecteezyZone.y, w: vecteezyZone.w, h: vecteezyZone.h, color: ZONES[2].color, label: 'Vecteezy' });
 
@@ -276,7 +286,6 @@ function updateSVG() {
   while (svg.firstChild) svg.removeChild(svg.firstChild);
   tracedRoutes.forEach(function(r) {
     var color = r.color || '#e97c1a';
-
     var halo = document.createElementNS(SVG_NS, 'polyline');
     halo.setAttribute('points', r.pointsStr);
     halo.setAttribute('fill', 'none');
@@ -284,7 +293,6 @@ function updateSVG() {
     halo.setAttribute('stroke-linecap', 'round');
     halo.setAttribute('stroke-linejoin', 'round');
     svg.appendChild(halo);
-
     var line = document.createElementNS(SVG_NS, 'polyline');
     line.setAttribute('points', r.pointsStr);
     line.setAttribute('fill', 'none');
@@ -339,7 +347,6 @@ function renderRouteList() {
   });
 }
 
-/* Init selects villes */
 (function initVilleSelects() {
   var d = document.getElementById('villeDepart');
   var a = document.getElementById('villeArrivee');
@@ -548,7 +555,6 @@ function effacerTousTextes() {
   draw();
 }
 
-/* Listeners zone orange */
 document.getElementById('tailleOrange').addEventListener('input', function() {
   document.getElementById('tailleValue').textContent = this.value + ' px';
   if (textOrangeEditionActif !== null) mettreAJourTexteOrangeEdition();
@@ -575,21 +581,37 @@ function resolveAlign(alignment, arabic) {
   return 'center';
 }
 
-/* Dessine une ligne avec coloration mot par mot */
-function drawColoredLine(c, words, x, y, taille, colorStyles, alignment, arabic) {
-  var line      = words.join(' ');
-  var lineWidth = c.measureText(line).width;
-  var curX      = x;
-  if (alignment === 'center') curX = x - lineWidth / 2;
-  else if (alignment === 'right' || (arabic && alignment === 'left')) curX = x - lineWidth;
-  var display = arabic ? words.slice().reverse() : words;
+/* ──────────────────────────────────────────────────────────
+   drawColoredLine — v2 : police PAR MOT (arabe auto + fontStyles)
+   ────────────────────────────────────────────────────────── */
+function drawColoredLine(c, words, x, y, taille, colorStyles, fontStyles, defaultPolice, alignment, arabic) {
+  var arabic2 = arabic;
+
+  /* Calcul de la largeur totale avec les polices par mot */
+  var totalW = 0;
+  words.forEach(function(word) {
+    var font = resolveWordFont(word, fontStyles, defaultPolice);
+    c.font = taille + 'px ' + font;
+    totalW += c.measureText(word + ' ').width;
+  });
+
+  var curX = x;
+  if (alignment === 'center') curX = x - totalW / 2;
+  else if (alignment === 'right' || (arabic2 && alignment === 'left')) curX = x - totalW;
+
+  var display = arabic2 ? words.slice().reverse() : words;
   display.forEach(function(word) {
+    var font = resolveWordFont(word, fontStyles, defaultPolice);
+    c.font = taille + 'px ' + font;
+
+    /* couleur */
     var color = '#ffffff';
     colorStyles.forEach(function(s) {
       if (word.toLowerCase().includes(s.mot.toLowerCase()) ||
           s.mot.toLowerCase().includes(word.toLowerCase())) { color = s.couleur; }
     });
     c.fillStyle = color;
+
     var saved = c.textAlign; c.textAlign = 'left';
     c.fillText(word + ' ', curX, y);
     c.textAlign = saved;
@@ -600,77 +622,152 @@ function drawColoredLine(c, words, x, y, taille, colorStyles, alignment, arabic)
 /* Dessine un objet texteAvance générique sur le canvas */
 function drawTexteAvanceGeneric(c, t) {
   if (!t.visible || !t.texte) return;
-  var arabic = isArabicText(t.texte);
-  var lh     = (t.lineHeight !== undefined ? t.lineHeight : 1.5) * t.taille;
+  var arabic  = isArabicText(t.texte);
+  var lh      = (t.lineHeight !== undefined ? t.lineHeight : 1.5) * t.taille;
+  var maxW    = 400;
+  var curY    = t.posY;
+
   c.save();
-  c.font         = t.taille + 'px ' + autoPolice(t.texte, t.police);
   c.direction    = arabic ? 'rtl' : 'ltr';
   c.textAlign    = resolveAlign(t.alignment, arabic);
   c.textBaseline = 'top';
   c.shadowColor  = 'transparent'; c.shadowBlur = 0; c.shadowOffsetX = 0; c.shadowOffsetY = 0;
-  var maxW = 400, curY = t.posY;
+
+  /* Wrapping avec polices mixtes */
   t.texte.split('\n').forEach(function(paragraph) {
     if (paragraph.trim() === '') { curY += lh; return; }
-    var words = paragraph.split(' '), lineWords = [];
+    var words = paragraph.split(' ');
+    var lineWords = [];
+
     words.forEach(function(w) {
-      var test = lineWords.length > 0 ? lineWords.join(' ') + ' ' + w : w;
-      if (c.measureText(test).width > maxW && lineWords.length > 0) {
-        drawColoredLine(c, lineWords, t.posX, curY, t.taille, t.colorStyles, t.alignment, arabic);
+      /* mesure avec la police du mot */
+      var font = resolveWordFont(w, t.fontStyles || [], t.police);
+      c.font = t.taille + 'px ' + font;
+      var testLine = lineWords.length > 0 ? lineWords.join(' ') + ' ' + w : w;
+
+      /* mesure approximative de la ligne complète */
+      var lineW = 0;
+      (lineWords.concat([w])).forEach(function(ww) {
+        var f2 = resolveWordFont(ww, t.fontStyles || [], t.police);
+        c.font = t.taille + 'px ' + f2;
+        lineW += c.measureText(ww + ' ').width;
+      });
+
+      if (lineW > maxW && lineWords.length > 0) {
+        drawColoredLine(c, lineWords, t.posX, curY, t.taille, t.colorStyles, t.fontStyles || [], t.police, t.alignment, arabic);
         curY += lh; lineWords = [w];
-      } else { lineWords.push(w); }
+      } else {
+        lineWords.push(w);
+      }
     });
+
     if (lineWords.length > 0) {
-      drawColoredLine(c, lineWords, t.posX, curY, t.taille, t.colorStyles, t.alignment, arabic);
+      drawColoredLine(c, lineWords, t.posX, curY, t.taille, t.colorStyles, t.fontStyles || [], t.police, t.alignment, arabic);
       curY += lh;
     }
   });
+
   c.restore();
 }
 
-/* Barre flottante de colorisation (partagée) */
-(function initFloatingColorBar() {
-  function buildBar(textarea, onApply) {
+/* ──────────────────────────────────────────────────────────
+   Barre flottante partagée : couleur + police sur sélection
+   ────────────────────────────────────────────────────────── */
+(function initFloatingBar() {
+
+  var POLICES = [
+    { key: 'Poppins-Bold',   label: 'Pp',  title: 'Poppins Bold' },
+    { key: 'Poppins-Black',  label: 'PB',  title: 'Poppins Black' },
+    { key: 'OpenSans-Bold',  label: 'OS',  title: 'Open Sans Bold' },
+    { key: 'GE-SS-Two-Bold', label: 'عر',  title: 'GE SS Two (عربي)' }
+  ];
+
+  function buildBar(textarea, onApplyColor, onApplyFont) {
     var selStart = 0, selEnd = 0;
+
     var bar = document.createElement('div');
     bar.style.cssText = [
-      'position:fixed', 'display:none', 'align-items:center', 'gap:6px',
-      'background:#1a1a28', 'border:1px solid #333', 'border-radius:10px',
-      'padding:6px 10px', 'z-index:9999', 'box-shadow:0 4px 18px rgba(0,0,0,0.55)'
+      'position:fixed', 'display:none', 'flex-direction:column', 'gap:6px',
+      'background:#1a1a28', 'border:1px solid #333', 'border-radius:12px',
+      'padding:8px 10px', 'z-index:9999', 'box-shadow:0 4px 18px rgba(0,0,0,0.6)'
     ].join(';');
+
+    /* ── Rangée couleurs ── */
+    var rowColor = document.createElement('div');
+    rowColor.style.cssText = 'display:flex;align-items:center;gap:6px;';
+
+    var labelC = document.createElement('span');
+    labelC.textContent = '🎨';
+    labelC.style.cssText = 'font-size:12px;color:#888;';
+    rowColor.appendChild(labelC);
 
     [{ couleur: '#e97c1a', label: 'Orange' }, { couleur: '#ff2222', label: 'Rouge' }].forEach(function(c) {
       var btn = document.createElement('button');
       btn.title = c.label;
       btn.style.cssText = [
-        'background:' + c.couleur, 'border:none', 'width:28px', 'height:28px',
-        'border-radius:7px', 'cursor:pointer', 'font-size:0',
-        'transition:transform 0.12s, box-shadow 0.12s'
+        'background:' + c.couleur, 'border:none', 'width:26px', 'height:26px',
+        'border-radius:7px', 'cursor:pointer', 'transition:transform 0.12s'
+      ].join(';');
+      btn.addEventListener('mouseenter', function() { this.style.transform = 'scale(1.15)'; });
+      btn.addEventListener('mouseleave', function() { this.style.transform = 'scale(1)'; });
+      btn.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        var mot = textarea.value.substring(selStart, selEnd).trim();
+        if (!mot) return;
+        onApplyColor(mot, c.couleur);
+        cacherBarre();
+      });
+      rowColor.appendChild(btn);
+    });
+
+    /* ── Rangée polices ── */
+    var rowFont = document.createElement('div');
+    rowFont.style.cssText = 'display:flex;align-items:center;gap:5px;';
+
+    var labelF = document.createElement('span');
+    labelF.textContent = 'Aa';
+    labelF.style.cssText = 'font-size:11px;color:#888;min-width:16px;';
+    rowFont.appendChild(labelF);
+
+    POLICES.forEach(function(p) {
+      var btn = document.createElement('button');
+      btn.title = p.title;
+      btn.textContent = p.label;
+      btn.style.cssText = [
+        'background:#252535', 'border:1px solid #333', 'color:#ccc',
+        'border-radius:6px', 'padding:3px 7px', 'cursor:pointer',
+        'font-size:11px', 'font-weight:700', 'transition:all 0.12s',
+        p.key === 'GE-SS-Two-Bold' ? 'font-family:"GE-SS-Two-Bold",serif;' : ''
       ].join(';');
       btn.addEventListener('mouseenter', function() {
-        this.style.transform = 'scale(1.18)';
-        this.style.boxShadow = '0 0 0 2px ' + c.couleur + '66';
+        this.style.background = '#e97c1a';
+        this.style.color = '#fff';
+        this.style.borderColor = '#e97c1a';
       });
       btn.addEventListener('mouseleave', function() {
-        this.style.transform = 'scale(1)';
-        this.style.boxShadow = 'none';
+        this.style.background = '#252535';
+        this.style.color = '#ccc';
+        this.style.borderColor = '#333';
       });
       btn.addEventListener('mousedown', function(e) {
         e.preventDefault();
         var mot = textarea.value.substring(selStart, selEnd).trim();
         if (!mot) return;
-        onApply(mot, c.couleur);
+        onApplyFont(mot, p.key);
         cacherBarre();
       });
-      bar.appendChild(btn);
+      rowFont.appendChild(btn);
     });
 
+    bar.appendChild(rowColor);
+    bar.appendChild(rowFont);
     document.body.appendChild(bar);
 
     function afficherBarre(x, y) {
       bar.style.display = 'flex';
-      var bw = 100, bh = 44;
-      bar.style.left = Math.min(x, window.innerWidth - bw - 10) + 'px';
-      bar.style.top  = (y - bh - 8 < 0 ? y + 14 : y - bh - 8) + 'px';
+      var bh = 90;
+      bar.style.left = Math.min(x, window.innerWidth - 200) + 'px';
+      bar.style.top  = (y - bh - 10 < 0 ? y + 14 : y - bh - 10) + 'px';
     }
     function cacherBarre() { bar.style.display = 'none'; }
 
@@ -691,8 +788,17 @@ function drawTexteAvanceGeneric(c, t) {
     });
   }
 
-  buildBar(document.getElementById('texteAvance'),  function(mot, couleur) { appliquerCouleurSelection(mot, couleur); });
-  buildBar(document.getElementById('texteAvance2'), function(mot, couleur) { appliquerCouleurSelection2(mot, couleur); });
+  buildBar(
+    document.getElementById('texteAvance'),
+    function(mot, couleur) { appliquerCouleurSelection(mot, couleur); },
+    function(mot, police)  { appliquerPoliceSelection(mot, police);  }
+  );
+
+  buildBar(
+    document.getElementById('texteAvance2'),
+    function(mot, couleur) { appliquerCouleurSelection2(mot, couleur); },
+    function(mot, police)  { appliquerPoliceSelection2(mot, police);  }
+  );
 })();
 
 
@@ -700,14 +806,18 @@ function drawTexteAvanceGeneric(c, t) {
    9. TEXTE AVANCÉ 1
    ============================================================ */
 
-function drawTexteAvance(c) { drawTexteAvanceGeneric(c, texteAvance); }
+function drawTexteAvance(c)  { drawTexteAvanceGeneric(c, texteAvance); }
 
 function mettreAJourTexteAvance() {
   var texte  = document.getElementById('texteAvance').value;
   var taille = parseInt(document.getElementById('texteSize').value);
   var police = document.getElementById('policeTexteAvance').value;
   document.getElementById('texteSizeVal').textContent = taille + ' px';
-  if (isArabicText(texte)) { police = 'GE-SS-Two-Bold'; document.getElementById('policeTexteAvance').value = 'GE-SS-Two-Bold'; }
+  /* Police globale : auto arabe seulement si TOUT le texte est arabe */
+  if (isArabicText(texte) && !texte.match(/[a-zA-Z0-9]/)) {
+    police = 'GE-SS-Two-Bold';
+    document.getElementById('policeTexteAvance').value = 'GE-SS-Two-Bold';
+  }
   texteAvance.texte   = texte;
   texteAvance.taille  = taille;
   texteAvance.police  = police;
@@ -729,51 +839,92 @@ function definirAlignement(align) {
   draw();
 }
 
+/* Couleur sélection — texte 1 */
 function appliquerCouleurSelection(mot, couleur) {
   var found = false;
   texteAvance.colorStyles.forEach(function(s) {
     if (s.mot.toLowerCase() === mot.toLowerCase()) { s.couleur = couleur; found = true; }
   });
   if (!found) texteAvance.colorStyles.push({ mot: mot, couleur: couleur });
-  rendreListeMots();
+  rendreListeStyles();
   draw();
 }
 
-function colorerTexteSelectionne() {
-  var ta  = document.getElementById('texteAvance');
-  var mot = ta.value.substring(ta.selectionStart, ta.selectionEnd).trim();
-  if (!mot) { alert('Veuillez sélectionner du texte à colorer'); return; }
-  appliquerCouleurSelection(mot, document.getElementById('couleurMotSelection').value);
+/* Police sélection — texte 1 (NOUVEAU) */
+function appliquerPoliceSelection(mot, police) {
+  if (!texteAvance.fontStyles) texteAvance.fontStyles = [];
+  var found = false;
+  texteAvance.fontStyles.forEach(function(s) {
+    if (s.mot.toLowerCase() === mot.toLowerCase()) { s.police = police; found = true; }
+  });
+  if (!found) texteAvance.fontStyles.push({ mot: mot, police: police });
+  rendreListeStyles();
+  draw();
 }
 
-function rendreListeMots() {
+/* Rend la liste combinée couleurs + polices */
+function rendreListeStyles() {
   var list = document.getElementById('listeMotsColores');
   list.innerHTML = '';
+
+  /* Couleurs */
   texteAvance.colorStyles.forEach(function(s, index) {
     var div = document.createElement('div');
-    div.style.cssText = 'display:flex;align-items:center;margin-bottom:5px;padding:6px;border-radius:5px;border:1px solid #222;background:#0f0f1a;';
+    div.style.cssText = 'display:flex;align-items:center;margin-bottom:4px;padding:5px 7px;border-radius:5px;border:1px solid #222;background:#0f0f1a;';
     div.innerHTML =
+      '<span style="font-size:9px;color:#888;margin-right:4px;">🎨</span>' +
       '<span style="flex:1;font-size:11px;color:#ccc;">' + s.mot + '</span>' +
-      '<div style="width:20px;height:20px;background:' + s.couleur + ';border-radius:3px;margin:0 8px;"></div>' +
-      '<button onclick="supprimerColoration(' + index + ')" style="background:none;border:none;color:#555;cursor:pointer;padding:2px 6px;">✕</button>';
+      '<div style="width:18px;height:18px;background:' + s.couleur + ';border-radius:3px;margin:0 6px;"></div>' +
+      '<button onclick="supprimerColoration(' + index + ')" style="background:none;border:none;color:#555;cursor:pointer;padding:2px 5px;">✕</button>';
+    list.appendChild(div);
+  });
+
+  /* Polices */
+  (texteAvance.fontStyles || []).forEach(function(s, index) {
+    var div = document.createElement('div');
+    div.style.cssText = 'display:flex;align-items:center;margin-bottom:4px;padding:5px 7px;border-radius:5px;border:1px solid #1e2e10;background:#0c1208;';
+    div.innerHTML =
+      '<span style="font-size:9px;color:#888;margin-right:4px;">Aa</span>' +
+      '<span style="flex:1;font-size:11px;color:#a8e060;">' + s.mot + '</span>' +
+      '<span style="font-size:9px;color:#666;margin-right:6px;">' + s.police.replace('GE-SS-Two-Bold','GE Arab').replace('-Bold','') + '</span>' +
+      '<button onclick="supprimerPolice(' + index + ')" style="background:none;border:none;color:#555;cursor:pointer;padding:2px 5px;">✕</button>';
     list.appendChild(div);
   });
 }
 
-function supprimerColoration(index) { texteAvance.colorStyles.splice(index, 1); rendreListeMots(); draw(); }
+function supprimerColoration(index) {
+  texteAvance.colorStyles.splice(index, 1);
+  rendreListeStyles();
+  draw();
+}
+
+function supprimerPolice(index) {
+  if (texteAvance.fontStyles) texteAvance.fontStyles.splice(index, 1);
+  rendreListeStyles();
+  draw();
+}
+
+/* Bouton manuel "Colorer la sélection" (conservé) */
+function colorerTexteSelectionne() {
+  var ta  = document.getElementById('texteAvance');
+  var mot = ta.value.substring(ta.selectionStart, ta.selectionEnd).trim();
+  if (!mot) { alert('Veuillez sélectionner du texte'); return; }
+  appliquerCouleurSelection(mot, document.getElementById('couleurMotSelection').value);
+}
 
 function effacerTexteAvance() {
   texteAvance = {
-    texte: '', taille: 36, visible: false, colorStyles: [],
+    texte: '', taille: 36, visible: false,
+    colorStyles: [], fontStyles: [],
     posX: 540, posY: 1600, alignment: 'left', police: 'Poppins-Bold',
-    lineHeight: 0.8
+    lineHeight: 1
   };
   document.getElementById('texteAvance').value        = '';
   document.getElementById('texteSize').value          = '36';
   document.getElementById('texteSizeVal').textContent = '36 px';
   document.getElementById('policeTexteAvance').value  = 'Poppins-Bold';
   definirAlignement('left');
-  rendreListeMots();
+  rendreListeStyles();
   draw();
 }
 
@@ -789,7 +940,10 @@ function mettreAJourTexteAvance2() {
   var taille = parseInt(document.getElementById('texteSize2').value);
   var police = document.getElementById('policeTexteAvance2').value;
   document.getElementById('texteSizeVal2').textContent = taille + ' px';
-  if (isArabicText(texte)) { police = 'GE-SS-Two-Bold'; document.getElementById('policeTexteAvance2').value = 'GE-SS-Two-Bold'; }
+  if (isArabicText(texte) && !texte.match(/[a-zA-Z0-9]/)) {
+    police = 'GE-SS-Two-Bold';
+    document.getElementById('policeTexteAvance2').value = 'GE-SS-Two-Bold';
+  }
   texteAvance2.texte   = texte;
   texteAvance2.taille  = taille;
   texteAvance2.police  = police;
@@ -817,7 +971,57 @@ function appliquerCouleurSelection2(mot, couleur) {
     if (s.mot.toLowerCase() === mot.toLowerCase()) { s.couleur = couleur; found = true; }
   });
   if (!found) texteAvance2.colorStyles.push({ mot: mot, couleur: couleur });
-  rendreListeMots2();
+  rendreListeStyles2();
+  draw();
+}
+
+function appliquerPoliceSelection2(mot, police) {
+  if (!texteAvance2.fontStyles) texteAvance2.fontStyles = [];
+  var found = false;
+  texteAvance2.fontStyles.forEach(function(s) {
+    if (s.mot.toLowerCase() === mot.toLowerCase()) { s.police = police; found = true; }
+  });
+  if (!found) texteAvance2.fontStyles.push({ mot: mot, police: police });
+  rendreListeStyles2();
+  draw();
+}
+
+function rendreListeStyles2() {
+  var list = document.getElementById('listeMotsColores2');
+  list.innerHTML = '';
+
+  texteAvance2.colorStyles.forEach(function(s, index) {
+    var div = document.createElement('div');
+    div.style.cssText = 'display:flex;align-items:center;margin-bottom:4px;padding:5px 7px;border-radius:5px;border:1px solid #222;background:#0f0f1a;';
+    div.innerHTML =
+      '<span style="font-size:9px;color:#888;margin-right:4px;">🎨</span>' +
+      '<span style="flex:1;font-size:11px;color:#ccc;">' + s.mot + '</span>' +
+      '<div style="width:18px;height:18px;background:' + s.couleur + ';border-radius:3px;margin:0 6px;"></div>' +
+      '<button onclick="supprimerColoration2(' + index + ')" style="background:none;border:none;color:#555;cursor:pointer;padding:2px 5px;">✕</button>';
+    list.appendChild(div);
+  });
+
+  (texteAvance2.fontStyles || []).forEach(function(s, index) {
+    var div = document.createElement('div');
+    div.style.cssText = 'display:flex;align-items:center;margin-bottom:4px;padding:5px 7px;border-radius:5px;border:1px solid #1e2e10;background:#0c1208;';
+    div.innerHTML =
+      '<span style="font-size:9px;color:#888;margin-right:4px;">Aa</span>' +
+      '<span style="flex:1;font-size:11px;color:#a8e060;">' + s.mot + '</span>' +
+      '<span style="font-size:9px;color:#666;margin-right:6px;">' + s.police.replace('GE-SS-Two-Bold','GE Arab').replace('-Bold','') + '</span>' +
+      '<button onclick="supprimerPolice2(' + index + ')" style="background:none;border:none;color:#555;cursor:pointer;padding:2px 5px;">✕</button>';
+    list.appendChild(div);
+  });
+}
+
+function supprimerColoration2(index) {
+  texteAvance2.colorStyles.splice(index, 1);
+  rendreListeStyles2();
+  draw();
+}
+
+function supprimerPolice2(index) {
+  if (texteAvance2.fontStyles) texteAvance2.fontStyles.splice(index, 1);
+  rendreListeStyles2();
   draw();
 }
 
@@ -828,25 +1032,10 @@ function colorerTexteSelectionne2() {
   appliquerCouleurSelection2(mot, document.getElementById('couleurMotSelection2').value);
 }
 
-function rendreListeMots2() {
-  var list = document.getElementById('listeMotsColores2');
-  list.innerHTML = '';
-  texteAvance2.colorStyles.forEach(function(s, index) {
-    var div = document.createElement('div');
-    div.style.cssText = 'display:flex;align-items:center;margin-bottom:5px;padding:6px;border-radius:5px;border:1px solid #222;background:#0f0f1a;';
-    div.innerHTML =
-      '<span style="flex:1;font-size:11px;color:#ccc;">' + s.mot + '</span>' +
-      '<div style="width:20px;height:20px;background:' + s.couleur + ';border-radius:3px;margin:0 8px;"></div>' +
-      '<button onclick="supprimerColoration2(' + index + ')" style="background:none;border:none;color:#555;cursor:pointer;padding:2px 6px;">✕</button>';
-    list.appendChild(div);
-  });
-}
-
-function supprimerColoration2(index) { texteAvance2.colorStyles.splice(index, 1); rendreListeMots2(); draw(); }
-
 function effacerTexteAvance2() {
   texteAvance2 = {
-    texte: '', taille: 36, visible: false, colorStyles: [],
+    texte: '', taille: 36, visible: false,
+    colorStyles: [], fontStyles: [],
     posX: 540, posY: 1750, alignment: 'left', police: 'Poppins-Bold'
   };
   document.getElementById('texteAvance2').value        = '';
@@ -854,13 +1043,13 @@ function effacerTexteAvance2() {
   document.getElementById('texteSizeVal2').textContent = '36 px';
   document.getElementById('policeTexteAvance2').value  = 'Poppins-Bold';
   definirAlignement2('left');
-  rendreListeMots2();
+  rendreListeStyles2();
   draw();
 }
 
 
 /* ============================================================
-   11. DRAG & DROP (texte orange + textes avancés)
+   11. DRAG & DROP
    ============================================================ */
 
 var composition = document.getElementById('composition');
@@ -870,7 +1059,6 @@ composition.addEventListener('mousedown', function(e) {
   var mx = e.clientX - rect.left, my = e.clientY - rect.top;
   var sx = rect.width / NW, sy = rect.height / NH;
 
-  /* Texte avancé 1 */
   if (texteAvance.visible && texteAvance.texte) {
     if (Math.abs(mx - texteAvance.posX * sx) < 150 && Math.abs(my - texteAvance.posY * sy) < 80) {
       textAvanceDragActif = true; isDragging = true;
@@ -880,7 +1068,6 @@ composition.addEventListener('mousedown', function(e) {
     }
   }
 
-  /* Texte avancé 2 */
   if (texteAvance2.visible && texteAvance2.texte) {
     if (Math.abs(mx - texteAvance2.posX * sx) < 150 && Math.abs(my - texteAvance2.posY * sy) < 80) {
       textAvance2DragActif = true; isDragging = true;
@@ -890,7 +1077,6 @@ composition.addEventListener('mousedown', function(e) {
     }
   }
 
-  /* Textes zone orange */
   for (var i = textesOrange.length - 1; i >= 0; i--) {
     var t = textesOrange[i];
     if (Math.abs(mx - t.posX * sx) < 200 && Math.abs(my - t.posY * sy) < 60) {
@@ -939,7 +1125,6 @@ document.addEventListener('mouseup', function() {
   }
 });
 
-/* Support tactile */
 composition.addEventListener('touchstart', function(e) {
   var t = e.touches[0];
   composition.dispatchEvent(new MouseEvent('mousedown', { clientX: t.clientX, clientY: t.clientY }));
@@ -977,7 +1162,6 @@ function appliquerPositionVecteezy(index) {
       btn.style.fontWeight  = i === index ? '800'     : '600';
     }
   });
-
   draw();
 }
 
@@ -993,9 +1177,7 @@ function onVecteezyHeightChange(val) {
   draw();
 }
 
-function resetVecteezyPosition() {
-  appliquerPositionVecteezy(vecteezyPositionActive);
-}
+function resetVecteezyPosition() { appliquerPositionVecteezy(vecteezyPositionActive); }
 
 
 /* ============================================================
@@ -1078,7 +1260,6 @@ function resetAll() {
    14. EVENT LISTENERS
    ============================================================ */
 
-/* Texte avancé 1 */
 document.getElementById('texteAvance').addEventListener('input',         mettreAJourTexteAvance);
 document.getElementById('texteSize').addEventListener('input',           mettreAJourTexteAvance);
 document.getElementById('policeTexteAvance').addEventListener('change',  mettreAJourTexteAvance);
@@ -1088,7 +1269,6 @@ document.getElementById('btnAlignGauche').addEventListener('click',  function() 
 document.getElementById('btnAlignCentre').addEventListener('click',  function() { definirAlignement('center'); });
 document.getElementById('btnAlignDroite').addEventListener('click',  function() { definirAlignement('right'); });
 
-/* Texte avancé 2 */
 document.getElementById('texteAvance2').addEventListener('input',         mettreAJourTexteAvance2);
 document.getElementById('texteSize2').addEventListener('input',           mettreAJourTexteAvance2);
 document.getElementById('policeTexteAvance2').addEventListener('change',  mettreAJourTexteAvance2);
@@ -1098,15 +1278,12 @@ document.getElementById('btnAlignGauche2').addEventListener('click', function() 
 document.getElementById('btnAlignCentre2').addEventListener('click', function() { definirAlignement2('center'); });
 document.getElementById('btnAlignDroite2').addEventListener('click', function() { definirAlignement2('right'); });
 
-/* Routes */
 document.getElementById('btnTracer').addEventListener('click', tracerRoute);
 document.getElementById('btnClear').addEventListener('click',  effacerTout);
 
-/* Zone orange */
 document.getElementById('btnAjouterTexteOrange').addEventListener('click', ajouterTexteOrange);
 document.getElementById('btnEffacerTousTextes').addEventListener('click',  effacerTousTextes);
 
-/* Vecteezy */
 document.getElementById('btnResetVecteezy').addEventListener('click', resetVecteezyPosition);
 document.getElementById('vecteezyW').addEventListener('input', function() { onVecteezyWidthChange(this.value); });
 document.getElementById('vecteezyH').addEventListener('input', function() { onVecteezyHeightChange(this.value); });
